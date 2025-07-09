@@ -1,0 +1,80 @@
+.modal {
+  width: 400px;
+  height: 500px;
+  overflow: hidden; /* 최상위 모달은 넘침 숨김 */
+  display: flex;
+  flex-direction: column;
+}
+
+.modal-buttons {
+  display: flex;
+  gap: 6px; /* 기본 간격 10px 정도였으면 6px로 줄임 */
+}
+
+.modal-buttons button {
+  padding: 6px 12px; /* 버튼 크기 조절 가능 */
+}
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.4);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 999;
+}
+
+.modal-content {
+  flex: 1;                 /* 남은 영역 모두 차지 */
+  overflow-y: auto;        /* 내용 넘치면 세로 스크롤 */
+  padding: 16px;
+  box-sizing: border-box;
+}
+
+.modal-content button {
+  margin: 4px 6px; /* 좌우 간격을 줄임 */
+  padding: 8px 12px; /* 버튼 내 여백 적절히 조절 */
+}
+
+.modal-title {
+  font-size: 20px;
+  font-weight: bold;
+  margin-bottom: 16px;
+}
+
+.modal-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: flex-start;
+  max-height: 250px;
+  overflow-y: auto;
+  padding: 10px;
+}
+
+.modal-option {
+  background-color: #eee;
+  padding: 6px 14px;
+  border-radius: 16px;
+  cursor: pointer;
+  font-size: 14px;
+  white-space: nowrap;
+  transition: 0.2s ease;
+}
+
+.modal-option:hover {
+  background-color: #ccc;
+}
+
+.modal-option.selected {
+  background-color: #007bff;
+  color: white;
+}
+
+.modal-footer {
+  margin-top: 20px;
+  text-align: right;
+}

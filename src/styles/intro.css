@@ -1,0 +1,34 @@
+.intro-container {
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: linear-gradient(to right, #ff9a9e, #fad0c4);
+  color: white;
+}
+.intro-card {
+  text-align: center;
+  padding: 50px;
+  background-color: rgba(255, 255, 255, 0.15);
+  border-radius: 20px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+  backdrop-filter: blur(10px);
+}
+.intro-card h1 {
+  font-size: 2.8rem;
+  margin-bottom: 15px;
+}
+.intro-card p {
+  font-size: 1.2rem;
+  margin-bottom: 25px;
+}
+.intro-card button {
+  padding: 12px 24px;
+  font-size: 1rem;
+  background-color: white;
+  color: #ff5f6d;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: bold;
+}

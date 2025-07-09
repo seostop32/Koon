@@ -1,0 +1,5 @@
+.dashboard-list {
+  height: calc(100vh - 60px);
+  overflow-y: auto;
+  padding-bottom: 20px; /* 마지막 카드 잘림 방지용 */
+}
