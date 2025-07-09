@@ -10,7 +10,7 @@ import { useSupabaseClient, useUser } from '@supabase/auth-helpers-react';
 import ChatPageHeader from '../pages/ChatPageHeader';
 import NotificationSettings from '../pages/NotificationSettings';
 
-
+  
 function ChatPage() {
   const navigate = useNavigate();
   const { userId: otherUserId } = useParams();  // 상대방 ID를 otherUserId로 변경
