@@ -40,31 +40,55 @@ console.log('로그인 시도:', { email: trimmedEmail, password: trimmedPasswor
         onAuthSuccess();
       } else {
         // 회원가입
-        const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
-          email: trimmedEmail,
-          password: trimmedPassword,
-        });
+          const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+            email: trimmedEmail,
+            password: trimmedPassword,
+  // email: "test7@example.com",
+  // password: "test1234",               
+          });
 
-        if (signUpError) {
-          console.error('회원가입 에러:', signUpError.message);
-          setError(signUpError.message);
-          return;
-        }
-
-          // 회원가입 성공 시 프로필 기본 데이터 생성
-        if (signUpData.user) {
-          const { error: profileError } = await supabase
-            .from('profiles')
-            .insert([{ id: signUpData.user.id, created_at: new Date().toISOString(), profile_completed: false }]);
-
-          if (profileError) {
-            console.error('프로필 기본 데이터 생성 실패:', profileError.message);
-          } else {
-            console.log('프로필 기본 데이터 생성 성공');
+          if (signUpError) {
+            console.error('회원가입 에러:', signUpError.message);
+            setError(signUpError.message);
+            return;
           }
-        }
 
-        onAuthSuccess();
+          const user = signUpData.user;
+
+          if (user) {
+            try {
+              // 기존 프로필이 있는지 확인
+              const { data: existingProfile, error: profileFetchError } = await supabase
+                .from('profiles')
+                .select('id')
+                .eq('id', user.id)
+                .maybeSingle(); // single() 대신 maybeSingle() 사용하면 not found일 때 에러 안 남
+
+              if (!existingProfile) {
+                const { error: profileInsertError, data: insertResult  } = await supabase
+                  .from('profiles')
+                  .insert([
+                    {
+                      id: user.id,
+                      // user_id: user.id, // ✅ FK에 맞춰줌
+                      created_at: new Date().toISOString(),
+                      profile_completed: false,
+                      username: trimmedUsername, // ✅ username 저장
+                    },
+                  ]);
+
+                if (profileInsertError) {
+                  console.error('❌ 프로필 insert 에러:', profileInsertError.message);
+                } else {
+                  console.log('✅ 프로필 insert 성공:', insertResult);
+                }
+              }
+            } catch (err) {
+              console.error('프로필 생성 중 예외 발생:', err.message);
+            }
+          }
+
+          onAuthSuccess();
       }
     } catch (err) {
       setError('예상치 못한 오류가 발생했습니다.');
