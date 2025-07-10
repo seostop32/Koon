@@ -2,6 +2,8 @@
 import React, { useEffect, useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, useNavigate, Navigate } from 'react-router-dom';
 import { supabase } from './supabaseClient';
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 import Intro from './components/Intro';
 import AuthPage from './components/AuthPage';
@@ -243,7 +245,9 @@ const handleLogout = async () => {
       <Route path="/notificationSettings" element={<NotificationSettings />} />
       <Route path="/profile/:userId" element={<ProfileDetail />} />
       <Route path="/coin-history" element={<CoinHistoryPage />} />
+      
     </Routes>
+    
   );
 }
 
@@ -263,11 +267,15 @@ export default function RealApp() {
   }, []);
 
   return (
-    <Router>
-      <div className="app-layout">
-        <UnreadMessagesBadge />
-        <AppRoutes />
-      </div>
-    </Router>
+    <>
+      <Router>
+        <div className="app-layout">
+          <UnreadMessagesBadge />
+          <AppRoutes />
+        </div>
+      </Router>
+      {/* ✅ 토스트는 여기 */}
+      <ToastContainer  position="top-center" />   
+    </>
   );
 }

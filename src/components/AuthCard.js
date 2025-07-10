@@ -1,7 +1,11 @@
 import React, { useState } from 'react';
 import { supabase } from '../supabaseClient';
+import { toast } from 'react-toastify';
+import { Toaster } from 'react-hot-toast';
 
 function AuthCard({ mode, onAuthSuccess, onSignUp }) {
+
+
   const [isLogin] = useState(mode === 'login');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -56,37 +60,31 @@ console.log('로그인 시도:', { email: trimmedEmail, password: trimmedPasswor
           const user = signUpData.user;
 
           if (user) {
-            try {
-              // 기존 프로필이 있는지 확인
-              const { data: existingProfile, error: profileFetchError } = await supabase
-                .from('profiles')
-                .select('id')
-                .eq('id', user.id)
-                .maybeSingle(); // single() 대신 maybeSingle() 사용하면 not found일 때 에러 안 남
-
-              if (!existingProfile) {
-                const { error: profileInsertError, data: insertResult  } = await supabase
+              try {
+                const { data: upsertResult, error: upsertError } = await supabase
                   .from('profiles')
-                  .insert([
+                  .upsert([
                     {
                       id: user.id,
-                      // user_id: user.id, // ✅ FK에 맞춰줌
                       created_at: new Date().toISOString(),
                       profile_completed: false,
-                      username: trimmedUsername, // ✅ username 저장
+                      username: trimmedUsername,
                     },
-                  ]);
+                  ], { onConflict: 'id' });  // id 기준 충돌 시 upsert
 
-                if (profileInsertError) {
-                  console.error('❌ 프로필 insert 에러:', profileInsertError.message);
+                if (upsertError) {
+                  console.error('❌ 프로필 upsert 에러:', upsertError.message);
                 } else {
-                  console.log('✅ 프로필 insert 성공:', insertResult);
+                  console.log('✅ 프로필 upsert 성공:', upsertResult);
                 }
+              } catch (err) {
+                console.error('프로필 upsert 중 예외 발생:', err.message);
               }
-            } catch (err) {
-              console.error('프로필 생성 중 예외 발생:', err.message);
             }
-          }
+
+
+          // ✅ 여기서만 호출해야 함
+          toast.success('회원가입 완료! 환영합니다 🎉');
 
           onAuthSuccess();
       }

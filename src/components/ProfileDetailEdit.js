@@ -1551,7 +1551,7 @@ const styles = {
     fontSize: 14,
   },
   saveButton: {
-    marginTop: '0px',
+    marginTop: '20px',         // 👈 위에 공간 조금 주기
     backgroundColor: '#52c41a',
     color: 'white',
     padding: '10px 18px',
@@ -1560,7 +1560,7 @@ const styles = {
     cursor: 'pointer',
     fontSize: 16,
     width: '100%',
-    marginBottom: '20px'
+    marginBottom: '60px'       // 👈 아래 공간 넉넉히 줘서 너무 바닥에 붙지 않게
   },
   footer: {
     position: 'fixed',

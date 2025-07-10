@@ -44,7 +44,7 @@ const FavoritesPage = () => {
             location,
             age,
             region,
-            created_at_kst
+            created_at
           )
         `)
         .eq('liker_id', user.id)
@@ -64,7 +64,7 @@ const FavoritesPage = () => {
             location,
             age,
             region,
-            created_at_kst
+            created_at
           )
         `)
         .eq('liked_id', user.id)
