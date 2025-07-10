@@ -1551,8 +1551,8 @@ const styles = {
     fontSize: 14,
   },
   saveButton: {
-    marginTop: '20px',         // 👈 위에 공간 조금 주기
-    backgroundColor: '#52c41a',
+    marginTop: '0px',
+    backgroundColor: '#ff7f50',  // 코랄빛 주황 (Coral)
     color: 'white',
     padding: '10px 18px',
     border: 'none',
@@ -1560,7 +1560,7 @@ const styles = {
     cursor: 'pointer',
     fontSize: 16,
     width: '100%',
-    marginBottom: '60px'       // 👈 아래 공간 넉넉히 줘서 너무 바닥에 붙지 않게
+    marginBottom: '90px',
   },
   footer: {
     position: 'fixed',
