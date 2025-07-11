@@ -53,7 +53,13 @@ function PrivacyPolicy() {
         당사는 이에 대해 지체 없이 조치하겠습니다.
       </p>
 
-      <h3 style={{ marginTop: 30, color: '#c2185b' }}>6. 문의 및 연락처</h3>
+      <h3 style={{ marginTop: 30, color: '#c2185b' }}>6. 이미지 및 콘텐츠 무단 캡처 금지</h3>
+      <p style={{ lineHeight: 1.6 }}>
+        서비스 내 이미지 및 콘텐츠는 무단 캡처, 저장, 배포를 금지합니다.<br />
+        캡처 행위로 인한 저작권 침해 및 개인정보 유출에 대해서는 법적 책임이 따릅니다.
+      </p>      
+
+      <h3 style={{ marginTop: 30, color: '#c2185b' }}>7. 문의 및 연락처</h3>
       <p style={{ lineHeight: 1.6 }}>
         개인정보 보호 관련 문의는 고객센터 이메일(admin@xxx.com) 또는 전화(010-0000-0000)로 연락주시기 바랍니다.
       </p>
