@@ -16,16 +16,11 @@ function Intro({ onLoginClick, onSignUpClick }) {
       </p>
 
       {/* 남자 여자 이미지 추가 */}
-      <div style={{ margin: '20px 0' }}>
+      <div style={{ margin: '20px 0', textAlign: 'center' }}>
         <img 
-          src="https://via.placeholder.com/150x150/FF0000/FFFFFF?text=남자" 
-          alt="남자" 
-          style={{ width: '150px', height: '150px', borderRadius: '50%', margin: '0 20px' }} 
-        />
-        <img 
-          src="https://via.placeholder.com/150x150/0000FF/FFFFFF?text=여자" 
-          alt="여자" 
-          style={{ width: '150px', height: '150px', borderRadius: '50%', margin: '0 20px' }} 
+          src="/images/pexels-seljansalim-32392457.jpg" 
+          alt="커플 이미지" 
+          style={{ width: '300px', borderRadius: '20px' }} 
         />
       </div>
 
