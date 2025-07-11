@@ -105,17 +105,47 @@ console.log(profileData[0]?.nickname);  // 첫 번째 프로필 닉네임 출력
       }, {});
     }
 
-    const finalChatList = processedChats.map((chat) => ({
-      id: chat.id,
-      content: chat.content,
-      created_at: chat.created_at,
-      unreadCount: chat.unread_count || 0,
-      otherUser: profilesMap[chat.otherUserId] || {
-        id: '',
-        nickname: '알 수 없음',
-        avatar_url: '',
-      },
-    }));
+    // 1️⃣ 알림 설정 (열‑별 구조일 때)
+    const { data: setting } = await supabase
+      .from('notification_settings')
+      .select('message_notification')
+      .eq('user_id', currentUserId)   // ← 내 알림 설정 row
+      .single();
+
+    const isNotificationOn = setting?.message_notification !== false;
+
+    // 2️⃣ finalChatList 만들 때
+    const finalChatList = processedChats.map((chat) => {
+      const unreadCount = chat.unread_count || 0;
+
+      return {
+        id: chat.id,
+        content: chat.content,
+        created_at: chat.created_at,
+
+        unreadCount,
+        // showBadge: unreadCount > 0,                      // 기존
+        showBadge: isNotificationOn && unreadCount > 0,  // ✅ 알림 OFF면 숨김
+
+        otherUser: profilesMap[chat.otherUserId] || {
+          id: '',
+          nickname: '알 수 없음',
+          avatar_url: '',
+        },
+      };
+    });    
+    // const finalChatList = processedChats.map((chat) => ({
+    //   id: chat.id,
+    //   content: chat.content,
+    //   created_at: chat.created_at,
+    //   unreadCount: chat.unread_count || 0,
+    //   showBadge:   (chat.unread_count || 0) > 0,   // ✨ 추가
+    //   otherUser: profilesMap[chat.otherUserId] || {
+    //     id: '',
+    //     nickname: '알 수 없음',
+    //     avatar_url: '',
+    //   },
+    // }));
 
     setChatList(finalChatList);
     setLoading(false);
@@ -153,46 +183,49 @@ console.log(profileData[0]?.nickname);  // 첫 번째 프로필 닉네임 출력
     };
   }, [navigate]);
 
-  useEffect(() => {
-    const fetchChatList = async () => {
-        // 기본 채팅 목록 불러오기
-        const { data: chats, error } = await supabase.rpc('get_chat_list_with_unread', {
-          user_id: userId,
-        });
+//   useEffect(() => {
+//     const fetchChatList = async () => {
+//         // 기본 채팅 목록 불러오기
+//         const { data: chats, error } = await supabase.rpc('get_chat_list_with_unread', {
+//           // user_id: userId,
+//           current_user_id: userId
+//         });
 
-        if (error) {
-          console.error('RPC 호출 실패:', error.message);
-          return;
-        }        
-        // if (error) {
-        //   console.error('채팅 목록 가져오기 실패:', error.message);
-        //   return;
-        // }
+//         if (error) {
+//           console.error('RPC 호출 실패:', error.message);
+//           return;
+//         }        
+//         // if (error) {
+//         //   console.error('채팅 목록 가져오기 실패:', error.message);
+//         //   return;
+//         // }
 
-        // 알림 설정 불러와서 각 채팅에 추가
-        const enhancedChats = await Promise.all(
-          chats.map(async (chat) => {
-console.log('chat unreadCount:', chat.unreadCount);  // 여기서 로그 찍기            
-            const { data: setting } = await supabase
-              .from('notification_settings')
-              .select('enabled')
-              .eq('user_id', chat.other_user_id) // 상대방이
-              .eq('notification_type', 'message') // 메시지 알림 설정 중에서
-              .maybeSingle();
+//         // 알림 설정 불러와서 각 채팅에 추가
+//         const enhancedChats = await Promise.all(
+//           chats.map(async (chat) => {
+// console.log('chat unreadCount:', chat.unreadCount);  // 여기서 로그 찍기            
+//             const { data: setting } = await supabase
+//               .from('notification_settings')
+//               .select('enabled')
+//               .eq('user_id', chat.other_user_id) // 상대방이
+//               .eq('notification_type', 'message') // 메시지 알림 설정 중에서
+//               .maybeSingle();
 
-            const isNotificationOn = setting?.enabled !== false; // 꺼져있지 않으면 켜진 걸로 간주
-            return {
-              ...chat,
-              showBadge: chat.unreadCount > 0 && isNotificationOn,
-            };
-          })
-        );
+//             const isNotificationOn = setting?.enabled !== false; // 꺼져있지 않으면 켜진 걸로 간주
+//             return {
+//               ...chat,
+//               // showBadge: chat.unreadCount > 0 && isNotificationOn,
+//               unreadCount: chat.unread_count || 0,               // ① snake → camel
+//               showBadge:   (chat.unread_count || 0) > 0 && isNotificationOn,  // ② 비교 대상 수정              
+//             };
+//           })
+//         );
 
-        setChatList(enhancedChats);
-      };
+//         setChatList(enhancedChats);
+//       };
 
-      fetchChatList();
-    }, [userId]);  
+//       fetchChatList();
+//     }, [userId]);  
 
   return (
     <div>
@@ -244,7 +277,8 @@ console.log('chat unreadCount:', chat.unreadCount);  // 여기서 로그 찍기
                   })}
                   {/* 읽지 않은 메시지 수 뱃지 */}
                   {chat.showBadge && (
-                    <div style={styles.unreadBadgeSmall}>{chat.unreadCount}</div>
+                    // <div style={styles.unreadBadgeSmall}>{chat.unreadCount}</div>
+                    <div style={styles.unreadBadgeSmall}>{chat.unreadCount}</div>   // ← 위에서 camel 값 만들었으니 OK
                   )}
 
 {/* {chat.unreadCount > 0 && (
