@@ -49,7 +49,7 @@ function PrivacyPolicy() {
 
       <h2 style={{ marginTop: 30, color: '#c2185b' }}>6. 문의 및 연락처</h2>
       <p style={{ lineHeight: 1.6 }}>
-        개인정보 보호 관련 문의는 고객센터 이메일(seostop32@hotmail.com) 또는 전화(010-3293-6841)로 연락주시기 바랍니다.
+        개인정보 보호 관련 문의는 고객센터 이메일(admin@xxx.com) 또는 전화(010-0000-0000)로 연락주시기 바랍니다.
       </p>
 
       <p style={{ marginTop: 40, fontSize: '0.9em', color: '#666', textAlign: 'center' }}>

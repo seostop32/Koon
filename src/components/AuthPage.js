@@ -57,13 +57,13 @@ function AuthPage({ mode, onAuthSuccess }) {
           boxSizing: 'border-box',
         }}
       >
-        <h1
+        <h3
           style={{ color: '#1976d2', cursor: 'pointer', margin: 0 }}
           onClick={() => navigate('/')}
         >
-          💗 나의 멋진 앱
-        </h1>
-        <button
+          💗 벙개 데이팅
+        </h3>
+        {/* <button
           style={{
             background: 'none',
             border: 'none',
@@ -74,7 +74,7 @@ function AuthPage({ mode, onAuthSuccess }) {
           onClick={() => navigate('/intro')}
         >
           Intro로 이동
-        </button>
+        </button> */}
       </header>
 
       <main

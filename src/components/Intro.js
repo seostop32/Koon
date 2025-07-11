@@ -6,12 +6,12 @@ function Intro({ onLoginClick, onSignUpClick }) {
 
   return (
     <div style={{ textAlign: 'center', marginTop: '50px' }}>
-      <h1 style={{ fontSize: '2.5em', color: '#333' }}>환영합니다!</h1>
-      <h2 style={{ fontSize: '2em', color: '#e91e63' }}>💗 나의 멋진 앱에 오신 것을 환영합니다</h2>
-      <p style={{ fontSize: '1.2em', color: '#555' }}>
+      {/* <h3 style={{ fontSize: '2.5em', color: '#333' }}>환영합니다!</h3> */}
+      <h5 style={{ fontSize: '1.4em', color: '#e91e63' }}>💗 벙개 데이팅에 오신것을 환영합니다</h5>
+      <p style={{ fontSize: '0.8em', color: '#555' }}>
         당신만을 위한 따뜻한 인연을 시작해보세요.
       </p>
-      <p style={{ fontSize: '1.2em', color: '#555' }}>
+      <p style={{ fontSize: '0.8em', color: '#555' }}>
         계속하려면 로그인 또는 회원가입 해주세요
       </p>
 

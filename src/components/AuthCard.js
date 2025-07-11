@@ -44,43 +44,42 @@ console.log('로그인 시도:', { email: trimmedEmail, password: trimmedPasswor
         onAuthSuccess();
       } else {
         // 회원가입
+          // 1) signUp
           const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
             email: trimmedEmail,
             password: trimmedPassword,
-  // email: "test7@example.com",
-  // password: "test1234",               
+            options: {
+              data: { username: trimmedUsername },  // user_metadata
+            },            
           });
-
           if (signUpError) {
-            console.error('회원가입 에러:', signUpError.message);
-            setError(signUpError.message);
+            console.error(signUpError.message);
             return;
           }
 
-          const user = signUpData.user;
+          // 2) 트리거가 만든 행을 “업데이트” (INSERT 대신 UPDATE)
+          const userId = signUpData.user?.id;        // email 인증 여부와 관계없이 존재
+        console.log('userId 이름:', userId); // 빈 문자열이 아닌지 확인
+        console.log('업서트할 이름:', trimmedUsername); // 빈 문자열이 아닌지 확인
 
-          if (user) {
-              try {
-                const { data: upsertResult, error: upsertError } = await supabase
-                  .from('profiles')
-                  .upsert([
-                    {
-                      id: user.id,
-                      created_at: new Date().toISOString(),
-                      profile_completed: false,
-                      username: trimmedUsername,
-                    },
-                  ], { onConflict: 'id' });  // id 기준 충돌 시 upsert
+          if (userId && trimmedUsername) {
+            const { error: updateError, data: updateData } = await supabase
+              .from('profiles')
+              .update({ username: trimmedUsername })
+              .eq('id', userId)
+              .select('id, username');   // ← 반환될 행이 없으면 RLS 문제
+            console.log('업데이트 결과:', updateData);      // 빈 배열이면 0행
 
-                if (upsertError) {
-                  console.error('❌ 프로필 upsert 에러:', upsertError.message);
-                } else {
-                  console.log('✅ 프로필 upsert 성공:', upsertResult);
-                }
-              } catch (err) {
-                console.error('프로필 upsert 중 예외 발생:', err.message);
-              }
+            if (updateError) {
+              console.error('username 업데이트 실패:', updateError.message);
+            } else if (!updateData || updateData.length === 0) {
+              console.warn('0행 업데이트: RLS 정책 또는 조건 미일치');
+            }else {
+              console.log('username 업데이트 성공');
             }
+          } else {
+            console.warn('userId 또는 username이 없음');
+          }
 
 
           // ✅ 여기서만 호출해야 함
