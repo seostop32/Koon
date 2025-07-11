@@ -7,12 +7,12 @@ function Intro({ onLoginClick, onSignUpClick }) {
   return (
     <div style={{ textAlign: 'center', marginTop: '10px' }}>
       {/* <h3 style={{ fontSize: '2.5em', color: '#333' }}>환영합니다!</h3> */}
-      <h5 style={{ fontSize: '1.4em', color: '#e91e63' }}>💗 벙개 데이팅에 오신것을 환영합니다</h5>
+      <h5 style={{ fontSize: '1.4em', color: '#e91e63' }}>💗 벙개 데이팅에 오신것을 환영합니다.</h5>
       <p style={{ fontSize: '0.8em', color: '#555' }}>
         당신만을 위한 따뜻한 인연을 시작해보세요.
       </p>
       <p style={{ fontSize: '0.8em', color: '#555' }}>
-        계속하려면 로그인 또는 회원가입 해주세요
+        계속하려면 로그인 또는 회원가입 해주세요.
       </p>
 
       {/* 남자 여자 이미지 추가 */}
