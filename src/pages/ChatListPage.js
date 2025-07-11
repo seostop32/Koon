@@ -161,9 +161,13 @@ console.log(profileData[0]?.nickname);  // 첫 번째 프로필 닉네임 출력
         });
 
         if (error) {
-          console.error('채팅 목록 가져오기 실패:', error.message);
+          console.error('RPC 호출 실패:', error.message);
           return;
-        }
+        }        
+        // if (error) {
+        //   console.error('채팅 목록 가져오기 실패:', error.message);
+        //   return;
+        // }
 
         // 알림 설정 불러와서 각 채팅에 추가
         const enhancedChats = await Promise.all(

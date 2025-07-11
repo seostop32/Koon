@@ -176,7 +176,6 @@ console.log('totalUnread:', unreadMessageCount + unreadNotificationCount);
     fetchNotifications();
   }, [userId]);
   
-
   useEffect(() => {
     const fetchMessageAlertSetting = async () => {
       if (!userId) return;
@@ -185,19 +184,46 @@ console.log('totalUnread:', unreadMessageCount + unreadNotificationCount);
         .from('notification_settings')
         .select('enabled')
         .eq('user_id', userId)
-        .eq('notification_type', 'message')
-        .single();
+        // .eq('notification_type', 'message')
+        .maybeSingle(); // 변경: single -> maybeSingle
 
       if (error) {
         console.error('알림 설정 가져오기 실패:', error.message);
         return;
       }
 
-      setMessageAlertEnabled(data?.enabled ?? true); // 기본값 true
+      if (!data) {
+        // 데이터 없으면 기본값 true로 세팅
+        setMessageAlertEnabled(true);
+        return;
+      }
+
+      setMessageAlertEnabled(data.enabled ?? true);
     };
 
     fetchMessageAlertSetting();
-  }, [userId]);  
+  }, [userId]);
+  // useEffect(() => {
+  //   const fetchMessageAlertSetting = async () => {
+  //     if (!userId) return;
+
+  //     const { data, error } = await supabase
+  //       .from('notification_settings')
+  //       .select('enabled')
+  //       .eq('user_id', userId)
+  //       // .eq('notification_type', 'message')
+  //       .single();
+
+  //     if (error) {
+  //       console.error('알림 설정 가져오기 실패:', error.message);
+  //       return;
+  //     }
+
+  //     setMessageAlertEnabled(data?.enabled ?? true); // 기본값 true
+  //   };
+
+  //   fetchMessageAlertSetting();
+  // }, [userId]);  
   
   // 실시간 메시지 구독
   useEffect(() => {

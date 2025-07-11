@@ -5,7 +5,7 @@ function Intro({ onLoginClick, onSignUpClick }) {
   const navigate = useNavigate();
 
   return (
-    <div style={{ textAlign: 'center', marginTop: '50px' }}>
+    <div style={{ textAlign: 'center', marginTop: '10px' }}>
       {/* <h3 style={{ fontSize: '2.5em', color: '#333' }}>환영합니다!</h3> */}
       <h5 style={{ fontSize: '1.4em', color: '#e91e63' }}>💗 벙개 데이팅에 오신것을 환영합니다</h5>
       <p style={{ fontSize: '0.8em', color: '#555' }}>
