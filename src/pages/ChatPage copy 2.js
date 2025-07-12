@@ -7,10 +7,14 @@ import Message from '../components/MyMessage';
 import MyMessage from '../components/MyMessage';
 import OtherMessage from '../components/OtherMessage';
 import { useSupabaseClient, useUser } from '@supabase/auth-helpers-react';
+import ChatPageHeader from '../pages/ChatPageHeader';
+import NotificationSettings from '../pages/NotificationSettings';
 
+  
 function ChatPage() {
-  const { userId: otherUserId } = useParams();  // 상대방 ID를 otherUserId로 변경
   const navigate = useNavigate();
+  const { userId: otherUserId } = useParams();  // 상대방 ID를 otherUserId로 변경
+  // const { otherUserId } = useParams();  
 
   const [currentUserId, setCurrentUserId] = useState(null);
   const [recipient, setRecipient] = useState(null);
@@ -22,6 +26,7 @@ function ChatPage() {
 
   const [currentUserNickname, setCurrentUserNickname] = useState('');
   const [newMessage, setNewMessage] = useState("");  // 👈 이 줄을 추가해야 함
+  
   //const { data: { user } } = useSupabaseClient().auth.getUser(); // 최신 방식에 따라 다름
   // const selectedUser = {
   //   id: selectedUser.id, // 실제로는 라우터나 props로 받아올 것
@@ -299,6 +304,16 @@ function ChatPage() {
       content: `${currentUserNickname}님이 당신에게 새 메시지를 보냈습니다.`,  // ✅ 보낸 사람 닉네임 사용
     });    
 
+    // 여기서 noti_setting 업데이트 추가
+    const { error: notiError } = await supabase
+      .from('notification_settings')
+      .update({ target_user_id: currentUserId }) // 너(보낸 사람) 아이디로 변경
+      .eq('user_id', otherUserId);             // 상대방(user_id)이 대상
+
+    if (notiError) {
+      console.error('noti_setting 업데이트 실패:', notiError.message);
+    }    
+
   };
 
   const scrollToBottom = () => {
@@ -349,8 +364,13 @@ function ChatPage() {
   }
 
   return (
+    
     <div style={styles.container}>
-      <div style={styles.header}>
+      <div>
+        {/* <ChatPageHeader recipient={recipient} /> */}
+        <ChatPageHeader otherUserId={otherUserId} />
+      </div>      
+      {/* <div style={styles.header}>
         <img
           src={recipient.avatar_url || 'https://placekitten.com/100/100'}
           alt="상대 아바타"
@@ -365,7 +385,10 @@ function ChatPage() {
             {recipient.age ? `${recipient.age}세` : ''} {recipient.location ? `| ${recipient.location}` : ''} {recipient.job_title ? `| ${recipient.job_title}` : ''}
           </div>
         </div>
-      </div>
+      </div> */}
+
+      {/* 알림 설정 컴포넌트 추가 */}
+      {/* <NotificationSettings targetUserId={otherUserId} />       */}
 
       <div style={styles.messagesArea}>
         {messages.map((msg, index) => {
@@ -503,20 +526,30 @@ const styles = {
     borderTop: '1px solid #ddd',
     display: 'flex',
     gap: 8,
+    alignItems: 'center',  // 세로 가운데 정렬
   },
   textarea: {
-    flex: 1,
+    flex: 1,               // 가로 공간 최대한 차지
     resize: 'none',
-    padding: 8,
-    fontSize: 14,
+    fontSize: '16px',
+    fontFamily: 'Noto Sans KR, sans-serif',
+    letterSpacing: 'normal',
+    wordSpacing: 'normal',
+    whiteSpace: 'normal',
+    lineHeight: '1.4',
+    padding: '8px',
+    boxSizing: 'border-box',
+    minHeight: '50px',     // 높이 고정 또는 최소값 지정
   },
   sendButton: {
-    padding: '0 20px',
+    padding: '10px 20px',  // 버튼에 적당한 상하 패딩 추가
     backgroundColor: '#5ca05c',
     color: '#fff',
     border: 'none',
     borderRadius: 8,
     cursor: 'pointer',
+    whiteSpace: 'nowrap',  // 버튼 텍스트 줄 바꿈 방지
+    height: '50px',        // textarea와 높이 맞추기
   },
 };
 
