@@ -5,6 +5,29 @@ import * as faceapi from 'face-api.js';
 import YearPicker from './YearPicker'; // 경로는 실제 위치에 따라 조정
 import ProfileDetailEditHeader from './ProfileDetailEditHeader';
 
+// ▼ 연·월·일 숫자를 올렸다 내렸다 하는 아주 단순한 스피너
+function YearSpinner({ value, onChange, min, max }) {
+  const step = 1;                         // 1년씩 증감
+  const handleMinus = () => onChange(Math.max(min, (value || min) - step));
+  const handlePlus  = () => onChange(Math.min(max, (value || min) + step));
+
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+      <button onClick={handleMinus} style={btn}>－</button>
+      <input
+        type="number"
+        value={value ?? ''}
+        onChange={(e) => onChange(Number(e.target.value))}
+        min={min}
+        max={max}
+        step={step}
+        style={{ width: 80, textAlign: 'center', padding: 4 }}
+      />
+      <button onClick={handlePlus} style={btn}>＋</button>
+    </div>
+  );
+}
+const btn = { padding: '2px 6px', cursor: 'pointer' };
 
 function ProfileDetailEdit() {
   const { id } = useParams();
@@ -38,6 +61,8 @@ function ProfileDetailEdit() {
 
   const currentYear = new Date().getFullYear();
   const startYear = currentYear - 20; // 20살 되는 해
+  const minYear = currentYear - 70;
+  const maxYear = currentYear - 18;  
   const length = 50;
   const yearOptions = Array.from({ length }, (_, i) => startYear - i);
 
@@ -591,7 +616,10 @@ function ProfileDetailEdit() {
                       </div>
                     );
                   }
-                  
+
+                // (드롭다운 버전)
+                // currentYear 정의 이미 있으므로 그대로 사용
+         
                   if (name === 'yearofbirth') {
                     // 출생년도는 input + 버튼 같이 렌더링
                     return (
