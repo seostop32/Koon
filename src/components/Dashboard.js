@@ -280,7 +280,8 @@ const styles = {
     width: 100,
     height: 100,
     // borderRadius: '50%', // 여기서 원으로 만들어줌
-    borderRadius: '12px 0 0 12px',
+    // borderRadius: '12px 0 0 12px',
+    borderRadius: 12,          // 네 모서리 모두 12px
     objectFit: 'cover',    
     marginBottom: 8,
   },
