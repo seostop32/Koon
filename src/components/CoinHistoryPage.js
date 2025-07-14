@@ -7,6 +7,21 @@ const CoinHistoryPage = () => {
   const [history, setHistory] = useState([]);
   const navigate = useNavigate();
 
+  const reasonMap = {
+    'Coin deducted for change_setting':'이상형 찾기',
+    'send_message':'대화',
+    'single_profile_view':'프로필 조회',
+    'full_profile_view':'프로필 전체조회',
+    'like': '관심 보내기',
+    // message: '메시지',
+    
+    // blur_photo: '블러 사진',
+    // charge: '충전',
+    // use: '사용',
+    // 필요하면 더 추가
+  };
+
+
     useEffect(() => {
       const fetchHistory = async () => {
         const {
@@ -34,14 +49,7 @@ const CoinHistoryPage = () => {
       fetchHistory();
     }, []);
 
-  const reasonMap = {
-    message: '메시지',
-    like: '좋아요',
-    blur_photo: '블러 사진',
-    charge: '충전',
-    use: '사용',
-    // 필요하면 더 추가
-  };
+
 
   return (
     <div style={{ padding: '0 16px 16px 16px' }}>
@@ -55,8 +63,8 @@ const CoinHistoryPage = () => {
           <ul style={{ listStyle: 'none', padding: 0 }}>
               {history.map((item) => {
                 const isPositive = item.amount > 0;
-                const reasonText = item.description || item.type;
-
+                // const reasonText = item.description || item.type;
+                const reasonText = reasonMap[item.description] || reasonMap[item.type] || item.description || item.type;
                 const date = new Date(item.created_at);
                 const formattedDate = `${date.getFullYear()}-${(date.getMonth()+1)
                   .toString().padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')} ${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
