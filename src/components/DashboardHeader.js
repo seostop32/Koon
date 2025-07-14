@@ -347,9 +347,15 @@ console.log('totalUnread:', unreadMessageCount + unreadNotificationCount);
           onClick={() => navigate('/notifications')}
         />
         
-        <button style={styles.smallButton} onClick={handleLogout}>
+        {/* <button style={styles.smallButton} onClick={handleLogout}>
           로그아웃
-        </button>
+        </button> */}
+        <button
+          style={{ ...styles.smallButton, display: 'none' }} // 화면에 숨김
+          onClick={handleLogout}
+        >
+          로그아웃
+        </button>        
         <button style={styles.iconButton} onClick={() => navigate('/settings')}>
           <SlidersHorizontal size={20} />
         </button>
