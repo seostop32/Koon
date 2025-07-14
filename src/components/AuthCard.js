@@ -5,11 +5,11 @@ import { Visibility, VisibilityOff } from '@mui/icons-material';
 
 /**
  * AuthCard
- * - mode: 'login' | 'signup' | 'resetPassword'
- * - onAuthSuccess: () => void (callback after successful login)
+ * @param {'login' | 'signup' | 'resetPassword'} mode
+ * @param {() => void} onAuthSuccess
  */
 function AuthCard({ mode: initialMode = 'login', onAuthSuccess = () => {} }) {
-  // ───────────────────────────────────────────────────────────── state
+  // ─────────────────────────────── state
   const [mode, setMode] = useState(initialMode);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -18,8 +18,7 @@ function AuthCard({ mode: initialMode = 'login', onAuthSuccess = () => {} }) {
   const [message, setMessage] = useState('');
   const [showPassword, setShowPassword] = useState(false);
 
-  // ─────────────────────────────────────────────────────────── effects
-  // 모드가 바뀌면 필드 초기화
+  // 모드 변경 시 초기화
   useEffect(() => {
     setMode(initialMode);
     setEmail('');
@@ -30,7 +29,7 @@ function AuthCard({ mode: initialMode = 'login', onAuthSuccess = () => {} }) {
     setShowPassword(false);
   }, [initialMode]);
 
-  // ───────────────────────────────────────────────────────── handleSubmit
+  // 제출 핸들러
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
@@ -46,12 +45,12 @@ function AuthCard({ mode: initialMode = 'login', onAuthSuccess = () => {} }) {
     }
 
     try {
+      // 로그인
       if (mode === 'login') {
         if (!trimmedPassword) {
           setError('비밀번호를 입력해주세요.');
           return;
         }
-
         const { error } = await supabase.auth.signInWithPassword({
           email: trimmedEmail,
           password: trimmedPassword,
@@ -63,12 +62,12 @@ function AuthCard({ mode: initialMode = 'login', onAuthSuccess = () => {} }) {
         onAuthSuccess();
       }
 
+      // 회원가입
       if (mode === 'signup') {
         if (!trimmedPassword || !trimmedUsername) {
           setError('모든 필드를 입력해주세요.');
           return;
         }
-
         const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
           email: trimmedEmail,
           password: trimmedPassword,
@@ -93,6 +92,7 @@ function AuthCard({ mode: initialMode = 'login', onAuthSuccess = () => {} }) {
         setMode('login');
       }
 
+      // 비밀번호 재설정
       if (mode === 'resetPassword') {
         const { error } = await supabase.auth.resetPasswordForEmail(trimmedEmail, {
           redirectTo: window.location.origin + '/reset-password',
@@ -109,7 +109,6 @@ function AuthCard({ mode: initialMode = 'login', onAuthSuccess = () => {} }) {
     }
   };
 
-  // ─────────────────────────────────────────────────────────── JSX
   return (
     <div
       className="auth-card"
@@ -124,14 +123,12 @@ function AuthCard({ mode: initialMode = 'login', onAuthSuccess = () => {} }) {
         boxSizing: 'border-box',
       }}
     >
-      {/* ───────── 헤더 */}
       <h2 style={{ textAlign: 'center', marginBottom: 20 }}>
         {mode === 'login' && '로그인'}
         {mode === 'signup' && '회원가입'}
         {mode === 'resetPassword' && '비밀번호 찾기'}
       </h2>
 
-      {/* ───────── 폼 */}
       <form onSubmit={handleSubmit}>
         {/* 이메일 */}
         <input
@@ -150,19 +147,9 @@ function AuthCard({ mode: initialMode = 'login', onAuthSuccess = () => {} }) {
           }}
         />
 
-        {/* 비밀번호 (로그인, 회원가입) */}
+        {/* 비밀번호 */}
         {(mode === 'login' || mode === 'signup') && (
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              marginBottom: 15,
-              border: '1px solid #ccc',
-              borderRadius: 5,
-              paddingRight: 6,
-              boxSizing: 'border-box',
-            }}
-          >
+          <div style={{ position: 'relative', marginBottom: 15 }}>
             <input
               type={showPassword ? 'text' : 'password'}
               placeholder="비밀번호"
@@ -171,20 +158,24 @@ function AuthCard({ mode: initialMode = 'login', onAuthSuccess = () => {} }) {
               required
               autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
               style={{
-                flex: 1,
-                padding: 10,
-                border: 'none',
-                outline: 'none',
-                fontSize: 16,
+                width: '100%',
+                padding: '10px 40px 10px 10px',
+                borderRadius: 5,
+                border: '1px solid #ccc',
+                boxSizing: 'border-box',
               }}
             />
             <button
               type="button"
               onClick={() => setShowPassword((p) => !p)}
               style={{
+                position: 'absolute',
+                right: 8,
+                top: '50%',
+                transform: 'translateY(-50%)',
                 border: 'none',
                 background: 'transparent',
-                padding: 6,
+                padding: 4,
                 cursor: 'pointer',
                 display: 'flex',
                 alignItems: 'center',
@@ -196,7 +187,7 @@ function AuthCard({ mode: initialMode = 'login', onAuthSuccess = () => {} }) {
           </div>
         )}
 
-        {/* 사용자 이름 (회원가입) */}
+        {/* 사용자 이름 */}
         {mode === 'signup' && (
           <input
             type="text"
@@ -215,11 +206,9 @@ function AuthCard({ mode: initialMode = 'login', onAuthSuccess = () => {} }) {
           />
         )}
 
-        {/* 에러 / 메시지 */}
-        {error && <p style={{ color: 'red', marginBottom: 10, wordBreak: 'break-word' }}>{error}</p>}
-        {message && <p style={{ color: 'green', marginBottom: 10, wordBreak: 'break-word' }}>{message}</p>}
+        {error && <p style={{ color: 'red', marginBottom: 10 }}>{error}</p>}
+        {message && <p style={{ color: 'green', marginBottom: 10 }}>{message}</p>}
 
-        {/* 제출 버튼 */}
         <button
           type="submit"
           style={{
@@ -239,7 +228,6 @@ function AuthCard({ mode: initialMode = 'login', onAuthSuccess = () => {} }) {
         </button>
       </form>
 
-      {/* ───────── 하단 링크 */}
       <div style={{ marginTop: 15, fontSize: 14, textAlign: 'center' }}>
         {mode === 'login' && (
           <>
