@@ -48,22 +48,26 @@ function ProfileGuard({ children }) {
 
   useEffect(() => {
     const checkProfile = async () => {
-      const { data: { user }, error } = await supabase.auth.getUser();
+      try {
+        const { data: { user }, error } = await supabase.auth.getUser();
 
-      if (error || !user) {
-        navigate('/'); // 로그인 안 되어 있으면 홈으로
-        return;
-      }
+        if (error || !user) {
+          navigate('/');
+          return;
+        }
 
-      const { data: profile, error: profileError } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', user.id)
-        .single();
+        const { data: profile, error: profileError } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', user.id)
+          .single();
 
-      if (profileError || !profile) {
-        navigate(`/profile/${user.id}/edit`);
-      } else {
+        if (profileError || !profile) {
+          navigate(`/profile/${user.id}/edit`);
+        }
+      } catch (err) {
+        console.error(err);
+      } finally {
         setChecking(false);
       }
     };
@@ -71,7 +75,7 @@ function ProfileGuard({ children }) {
     checkProfile();
   }, [navigate]);
 
-  if (checking) return null; // 로딩 중
+  if (checking) return <div>로딩 중...</div>; // 빈 화면 대신 로딩 표시 추천
 
   return children;
 }
