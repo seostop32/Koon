@@ -127,6 +127,7 @@ function CoinCharge() {
 
   const [selectedOption, setSelectedOption] = useState(coinOptions[0].id);
   const [loadingTestCharge, setLoadingTestCharge] = useState(false);
+  const [loading, setLoading] = useState(false);
   
   const handleClose = () => navigate(-1);
   const handleBack = () => navigate(-1);
