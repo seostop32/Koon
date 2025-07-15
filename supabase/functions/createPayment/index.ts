@@ -4,7 +4,7 @@ import { serve } from "https://deno.land/std@0.223.0/http/server.ts";
 // 1) 공통 CORS 헤더
 const corsHeaders = {
   "Access-Control-Allow-Origin": "https://koon.vercel.app",
-  "Access-Control-Allow-Headers": "content-type",
+  "Access-Control-Allow-Headers": "content-type, authorization",  // 여기 authorization 추가해야 해
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 

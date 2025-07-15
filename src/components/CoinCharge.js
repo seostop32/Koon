@@ -188,6 +188,36 @@ const handleCharge = async (method) => {
     setLoading(false);
   }
 };  
+
+async function requestKakaoPay(method: string, amount: number, coins: number, userId: string) {
+  // 카카오페이 API에 요청 보내고,
+  // 응답받은 결제 준비 URL을 리턴하는 함수
+  const response = await fetch('https://kapi.kakao.com/v1/payment/ready', {
+    method: 'POST',
+    headers: {
+      'Authorization': `KakaoAK ${process.env.KAKAO_ADMIN_KEY}`,
+      'Content-Type': 'application/x-www-form-urlencoded;charset=utf-8',
+    },
+    body: new URLSearchParams({
+      cid: 'TC0ONETIME',
+      partner_order_id: userId,
+      partner_user_id: userId,
+      item_name: '코인 충전',
+      quantity: '1',
+      total_amount: amount.toString(),
+      vat_amount: '0',
+      tax_free_amount: '0',
+      approval_url: 'https://your-site.com/payment/success',
+      cancel_url: 'https://your-site.com/payment/cancel',
+      fail_url: 'https://your-site.com/payment/fail',
+    }),
+  });
+
+  if (!response.ok) throw new Error('카카오페이 준비 실패');
+
+  const data = await response.json();
+  return data.next_redirect_pc_url; // 결제 페이지 URL 반환
+}
   // const handleCharge = async (method) => {
   //   const selected = coinOptions.find((opt) => opt.id === selectedOption);
   //   if (!selected) return;
