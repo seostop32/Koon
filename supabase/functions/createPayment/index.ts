@@ -1,48 +1,68 @@
-// supabase/functions/createPayment/index.ts
 import { serve } from "https://deno.land/std@0.223.0/http/server.ts";
 
-// 1) 공통 CORS 헤더
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "https://koon.vercel.app",
-  "Access-Control-Allow-Headers": "content-type, authorization",  // 여기 authorization 추가해야 해
-  "Access-Control-Allow-Methods": "POST, OPTIONS",
-};
-
 serve(async (req) => {
-  // 2) OPTIONS 프리플라이트 요청 처리
-  if (req.method === "OPTIONS") {
+  console.log('Function createPayment 시작');
+  console.log('요청 method:', req.method);
+
+  const corsHeaders = {
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Methods': 'POST, OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+  };
+
+  if (req.method === 'OPTIONS') {
     return new Response(null, { status: 204, headers: corsHeaders });
   }
 
-  // 3) POST 이외 메서드 차단
-  if (req.method !== "POST") {
-    return new Response(
-      JSON.stringify({ error: "Method Not Allowed" }),
-      { status: 405, headers: { ...corsHeaders, "Content-Type": "application/json" } },
-    );
-  }
-
   try {
-    // 4) 본 로직 (결제 준비 등)
-    const { method, amount, coins, userId } = await req.json();
+    const json = await req.json();
+    console.log('요청 본문:', json);
 
-    // 👉 카카오페이 결제 준비 호출 (예시)
-    // const paymentUrl = await requestKakaoPay(method, amount, coins, userId);
-    const paymentUrl = "https://example.com/pay";  // 임시
+    const { method, amount, coins, userId } = json;
+    const kakaoAdminKey = Deno.env.get('KAKAO_ADMIN_KEY');
+    console.log('KAKAO_ADMIN_KEY:', kakaoAdminKey);
 
-    // 5) 성공 응답
-    return new Response(
-      JSON.stringify({ paymentUrl }),
-      { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } },
-    );
+    if (!kakaoAdminKey) throw new Error('KAKAO_ADMIN_KEY 환경변수가 설정되어 있지 않습니다.');
 
-  } catch (err) {
-    console.error("createPayment error:", err);
+    const response = await fetch('https://kapi.kakao.com/v1/payment/ready', {
+      method: 'POST',
+      headers: {
+        'Authorization': `KakaoAK ${kakaoAdminKey}`,
+        'Content-Type': 'application/x-www-form-urlencoded;charset=utf-8',
+      },
+      body: new URLSearchParams({
+        cid: 'TC0ONETIME',
+        partner_order_id: userId,
+        partner_user_id: userId,
+        item_name: '코인 충전',
+        quantity: '1',
+        total_amount: amount.toString(),
+        vat_amount: '0',
+        tax_free_amount: '0',
+        approval_url: 'https://your-site.com/payment/success',
+        cancel_url: 'https://your-site.com/payment/cancel',
+        fail_url: 'https://your-site.com/payment/fail',
+      }),
+    });
 
-    // 6) 실패 응답
-    return new Response(
-      JSON.stringify({ error: "Server Error" }),
-      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } },
-    );
+    if (!response.ok) {
+      const errorBody = await response.text();
+      console.error('카카오페이 API 오류 응답:', errorBody);
+      throw new Error(`카카오페이 요청 실패: ${errorBody}`);
+    }
+
+    const data = await response.json();
+    console.log('카카오페이 응답 데이터:', data);
+
+    return new Response(JSON.stringify({ paymentUrl: data.next_redirect_pc_url }), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json', ...corsHeaders },
+    });
+  } catch (error) {
+     console.error('createPayment 함수 에러:', error);
+    return new Response(JSON.stringify({ error: error.message }), {
+    status: 500,
+    headers: { 'Content-Type': 'application/json' }
+    });
   }
 });
