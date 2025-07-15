@@ -150,30 +150,35 @@ const handleCharge = async (method) => {
 
   try {
     setLoading(true);
-    // 실제 결제 요청 API 호출
+    
+    // supabase.auth.getUser()가 프로미스니까 async/await 써야 해
+    const { data: { user } } = await supabase.auth.getUser();
+    const session = await supabase.auth.getSession();
+    const token = session?.data?.session?.access_token; // 토큰 얻기 (버전에 따라 달라질 수 있음)
+
     const res = await fetch('https://xppsavlzabbdgjrnvwyq.functions.supabase.co/createPayment', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,  // 여기에 토큰 추가
+      },
       body: JSON.stringify({
         method,
-        amount: selected.price, // 예: 1000원
+        amount: selected.price,
         coins: selected.coins,
         userId: user.id,
       }),
     });
 
     const data = await res.json();
-
     if (!res.ok) {
       alert(data.error || '결제 요청 실패');
       return;
     }
 
     if (method === '카카오페이') {
-      // 카카오페이 결제 URL로 이동 (결제창 띄우기)
       window.location.href = data.paymentUrl;
     } else {
-      // 다른 결제 수단은 상황에 맞게 처리
       alert('결제 요청이 성공적으로 처리되었습니다.');
     }
   } catch (error) {
