@@ -137,50 +137,95 @@ function CoinCharge() {
   };
 
   //코인결제
-  const handleCharge = async (method) => {
-    const selected = coinOptions.find((opt) => opt.id === selectedOption);
-    if (!selected) return;
+const handleCharge = async (method) => {
+  const selected = coinOptions.find((opt) => opt.id === selectedOption);
+  if (!selected) return;
 
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) {
-      alert('로그인이 필요합니다.');
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) {
+    alert('로그인이 필요합니다.');
+    return;
+  }
+
+  try {
+    setLoading(true);
+    // 실제 결제 요청 API 호출
+    const res = await fetch('/api/createPayment', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        method,
+        amount: selected.price, // 예: 1000원
+        coins: selected.coins,
+        userId: user.id,
+      }),
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      alert(data.error || '결제 요청 실패');
       return;
     }
 
-    const coinsToAdd = selected.coins;
-    const ticketsToAdd = Math.floor(coinsToAdd / 1000); // 예: 10,000코인 → 10티켓
-
-    const { data: profileData, error: profileError } = await supabase
-      .from('profiles')
-      .select('coin_balance, view_tickets')
-      .eq('id', user.id)
-      .single();
-
-    if (profileError || !profileData) {
-      console.error(profileError);
-      alert('사용자 정보 조회 실패');
-      return;
-    }
-
-    const updatedBalance = (profileData.coin_balance || 0) + coinsToAdd;
-    const updatedTickets = (profileData.view_tickets || 0) + ticketsToAdd;
-
-    const { error: updateError } = await supabase
-      .from('profiles')
-      .update({
-        coin_balance: updatedBalance,
-        view_tickets: updatedTickets,
-      })
-      .eq('id', user.id);
-
-    if (updateError) {
-      console.error(updateError);
-      alert('충전에 실패했습니다.');
+    if (method === '카카오페이') {
+      // 카카오페이 결제 URL로 이동 (결제창 띄우기)
+      window.location.href = data.paymentUrl;
     } else {
-      alert(`결제방식: ${method}\n${coinsToAdd.toLocaleString()} 코인 충전 완료!`);
-      navigate(next);
+      // 다른 결제 수단은 상황에 맞게 처리
+      alert('결제 요청이 성공적으로 처리되었습니다.');
     }
-  };  
+  } catch (error) {
+    console.error('결제 요청 중 오류:', error);
+    alert('결제 요청 중 오류가 발생했습니다.');
+  } finally {
+    setLoading(false);
+  }
+};  
+  // const handleCharge = async (method) => {
+  //   const selected = coinOptions.find((opt) => opt.id === selectedOption);
+  //   if (!selected) return;
+
+  //   const { data: { user } } = await supabase.auth.getUser();
+  //   if (!user) {
+  //     alert('로그인이 필요합니다.');
+  //     return;
+  //   }
+
+  //   const coinsToAdd = selected.coins;
+  //   const ticketsToAdd = Math.floor(coinsToAdd / 1000); // 예: 10,000코인 → 10티켓
+
+  //   const { data: profileData, error: profileError } = await supabase
+  //     .from('profiles')
+  //     .select('coin_balance, view_tickets')
+  //     .eq('id', user.id)
+  //     .single();
+
+  //   if (profileError || !profileData) {
+  //     console.error(profileError);
+  //     alert('사용자 정보 조회 실패');
+  //     return;
+  //   }
+
+  //   const updatedBalance = (profileData.coin_balance || 0) + coinsToAdd;
+  //   const updatedTickets = (profileData.view_tickets || 0) + ticketsToAdd;
+
+  //   const { error: updateError } = await supabase
+  //     .from('profiles')
+  //     .update({
+  //       coin_balance: updatedBalance,
+  //       view_tickets: updatedTickets,
+  //     })
+  //     .eq('id', user.id);
+
+  //   if (updateError) {
+  //     console.error(updateError);
+  //     alert('충전에 실패했습니다.');
+  //   } else {
+  //     alert(`결제방식: ${method}\n${coinsToAdd.toLocaleString()} 코인 충전 완료!`);
+  //     navigate(next);
+  //   }
+  // };  
 
   // 테스트용 코인 1000개 충전 함수 추가
   const handleTestCharge = async () => {
