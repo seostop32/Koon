@@ -128,7 +128,7 @@ function CoinCharge() {
   const [selectedOption, setSelectedOption] = useState(coinOptions[0].id);
   const [loadingTestCharge, setLoadingTestCharge] = useState(false);
   const [loading, setLoading] = useState(false);
-  
+
   const handleClose = () => navigate(-1);
   const handleBack = () => navigate(-1);
 
@@ -151,7 +151,7 @@ const handleCharge = async (method) => {
   try {
     setLoading(true);
     // 실제 결제 요청 API 호출
-    const res = await fetch('/api/createPayment', {
+    const res = await fetch('https://xppsavlzabbdgjrnvwyq.functions.supabase.co/createPayment', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
