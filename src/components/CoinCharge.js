@@ -213,6 +213,7 @@ const handleCharge = async (method) => {
 
 async function requestKakaoPay(method: string, amount: number, coins: number, userId: string) {
   // 카카오페이 API에 요청 보내고,
+  const FRONT = "https://koon.vercel.app";
   // 응답받은 결제 준비 URL을 리턴하는 함수
   const response = await fetch('https://kapi.kakao.com/v1/payment/ready', {
     method: 'POST',
@@ -229,9 +230,12 @@ async function requestKakaoPay(method: string, amount: number, coins: number, us
       total_amount: amount.toString(),
       vat_amount: '0',
       tax_free_amount: '0',
-      approval_url: 'https://your-site.com/payment/success',
-      cancel_url: 'https://your-site.com/payment/cancel',
-      fail_url: 'https://your-site.com/payment/fail',
+      approval_url: `${FRONT}/payment-success`,
+      cancel_url: `${FRONT}/payment-cancel`,
+      fail_url: `${FRONT}/payment-fail`,      
+      // approval_url: 'https://your-site.com/payment/success',
+      // cancel_url: 'https://your-site.com/payment/cancel',
+      // fail_url: 'https://your-site.com/payment/fail',
     }),
   });
 
