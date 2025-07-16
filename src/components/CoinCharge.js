@@ -121,24 +121,15 @@ const styles = {
 
 // ⬇︎ ⬇︎ ① 분기 함수 먼저 선언
 function openKakaoPayRedirect(kakaoRes) {
-  const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-
-  let redirectUrl;
-
-  if (isMobile) {
-    // 모바일 앱 스킴 → 앱 없으면 mobile URL
-    redirectUrl = kakaoRes?.appScheme || kakaoRes?.mobilePaymentUrl;
-  } else {
-    // PC는 QR 페이지
-    redirectUrl = kakaoRes?.paymentUrl;
-  }
+  const redirectUrl = kakaoRes?.paymentUrl;
 
   if (!redirectUrl) {
     console.error("❌ 리디렉션 URL이 없습니다.", kakaoRes);
-    alert("결제 URL이 유효하지 않습니다.");
+    alert("결제 URL이 없습니다. 다시 시도해주세요.");
     return;
   }
 
+  // 공통 URL이니까 그냥 바로 리디렉션
   window.location.href = redirectUrl;
 }
 
