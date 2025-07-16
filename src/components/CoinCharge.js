@@ -122,27 +122,16 @@ const styles = {
 // ⬇︎ ⬇︎ ① 분기 함수 먼저 선언
 function openKakaoPayRedirect(kakaoRes) {
   const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+  const redirectUrl = kakaoRes?.paymentUrl;
 
-  if (isMobile) {
-    const mobileUrl =
-      kakaoRes?.next_redirect_app_url || kakaoRes?.next_redirect_mobile_url;
-
-    if (mobileUrl) {
-      window.location.href = mobileUrl;
-    } else {
-      console.error("❌ 모바일용 리디렉션 URL이 없습니다.", kakaoRes);
-      alert("카카오페이 모바일 결제 URL이 없습니다. 다시 시도해주세요.");
-    }
-  } else {
-    const pcUrl = kakaoRes?.next_redirect_pc_url;
-
-    if (pcUrl) {
-      window.location.href = pcUrl;
-    } else {
-      console.error("❌ PC용 리디렉션 URL이 없습니다.", kakaoRes);
-      alert("카카오페이 결제 URL이 없습니다. 다시 시도해주세요.");
-    }
+  if (!redirectUrl) {
+    console.error("❌ 카카오페이 리디렉션 URL이 없습니다.", kakaoRes);
+    alert("결제 리디렉션 URL이 유효하지 않습니다.");
+    return;
   }
+
+  // 모바일/PC 구분은 유지하되 URL은 동일하게 사용
+  window.location.href = redirectUrl;
 }
 
 function CoinCharge() {
