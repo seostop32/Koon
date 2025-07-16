@@ -125,14 +125,15 @@ function openKakaoPayRedirect(kakaoRes) {
   const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
 
   const redirectUrl = isMobile
-    ? (kakaoRes.next_redirect_app_url || kakaoRes.next_redirect_mobile_url)
+    ? kakaoRes.next_redirect_app_url || kakaoRes.next_redirect_mobile_url
     : kakaoRes.next_redirect_pc_url;
 
-  if (redirectUrl) {
-    window.location.href = redirectUrl;
-  } else {
+  if (!redirectUrl) {
     alert("결제 리디렉션 URL이 없습니다.");
+    return;
   }
+
+  window.location.href = redirectUrl;
 }
 
 function CoinCharge() {
