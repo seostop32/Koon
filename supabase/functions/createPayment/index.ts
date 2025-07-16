@@ -69,7 +69,12 @@ serve(async (req) => {
     const data = JSON.parse(bodyText);  // JSON으로 파싱해서 계속 사용
     console.log('카카오페이 응답 데이터:', data);
 
-    return new Response(JSON.stringify({ paymentUrl: data.next_redirect_pc_url }), {
+    // ✅ 변경 후:
+    return new Response(JSON.stringify({
+      next_redirect_app_url: data.next_redirect_app_url,
+      next_redirect_mobile_url: data.next_redirect_mobile_url,
+      next_redirect_pc_url: data.next_redirect_pc_url
+    }), {
       status: 200,
       headers: { 'Content-Type': 'application/json', ...corsHeaders },
     });

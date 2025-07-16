@@ -121,7 +121,6 @@ const styles = {
 
 // ⬇︎ ⬇︎ ① 분기 함수 먼저 선언
 function openKakaoPayRedirect(kakaoRes) {
-  console.log("🎯 kakaoRes 전체:", kakaoRes);
   const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
 
   const redirectUrl = isMobile
@@ -129,7 +128,8 @@ function openKakaoPayRedirect(kakaoRes) {
     : kakaoRes.next_redirect_pc_url;
 
   if (!redirectUrl) {
-    alert("결제 리디렉션 URL이 없습니다.");
+    console.error("❌ 리디렉션 URL이 없습니다.", kakaoRes);
+    alert("결제 URL이 없습니다. 다시 시도해주세요.");
     return;
   }
 
@@ -190,7 +190,7 @@ const handleCharge = async (method) => {
         'Authorization': `Bearer ${token}`,  // 여기에 토큰 추가
       },
       body: JSON.stringify({
-        method,
+        method: "카카오페이",
         amount: selected.price,
         coins: selected.coins,
         userId: user.id,
@@ -202,7 +202,7 @@ const handleCharge = async (method) => {
       alert(data.error || '결제 요청 실패');
       return;
     }
-
+    const kakaoRes = await res.json();
     // ────────────── 여기!  기존 window.location.href 대신 분기 함수 호출
     if (method === "카카오페이") {
       openKakaoPayRedirect(data);     // ← 한 줄 교체
