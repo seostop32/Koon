@@ -124,14 +124,24 @@ function openKakaoPayRedirect(kakaoRes) {
   const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
 
   if (isMobile) {
-    // 모바일: 앱용 URL 우선, 없으면 mobile_url
     const mobileUrl =
-      kakaoRes.next_redirect_app_url || kakaoRes.next_redirect_mobile_url;
-    window.location.href = mobileUrl;
+      kakaoRes?.next_redirect_app_url || kakaoRes?.next_redirect_mobile_url;
+
+    if (mobileUrl) {
+      window.location.href = mobileUrl;
+    } else {
+      console.error("❌ 모바일용 리디렉션 URL이 없습니다.", kakaoRes);
+      alert("카카오페이 모바일 결제 URL이 없습니다. 다시 시도해주세요.");
+    }
   } else {
-    // PC: 바로 이동하거나 QR 모달 띄우기
-    window.location.href = kakaoRes.next_redirect_pc_url;
-    // QR 모달 사용하려면 여기서 showPcQr(kakaoRes.next_redirect_pc_url);
+    const pcUrl = kakaoRes?.next_redirect_pc_url;
+
+    if (pcUrl) {
+      window.location.href = pcUrl;
+    } else {
+      console.error("❌ PC용 리디렉션 URL이 없습니다.", kakaoRes);
+      alert("카카오페이 결제 URL이 없습니다. 다시 시도해주세요.");
+    }
   }
 }
 
