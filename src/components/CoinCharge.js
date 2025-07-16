@@ -119,6 +119,22 @@ const styles = {
   },
 };
 
+// ⬇︎ ⬇︎ ① 분기 함수 먼저 선언
+function openKakaoPayRedirect(kakaoRes) {
+  const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+
+  if (isMobile) {
+    // 모바일: 앱용 URL 우선, 없으면 mobile_url
+    const mobileUrl =
+      kakaoRes.next_redirect_app_url || kakaoRes.next_redirect_mobile_url;
+    window.location.href = mobileUrl;
+  } else {
+    // PC: 바로 이동하거나 QR 모달 띄우기
+    window.location.href = kakaoRes.next_redirect_pc_url;
+    // QR 모달 사용하려면 여기서 showPcQr(kakaoRes.next_redirect_pc_url);
+  }
+}
+
 function CoinCharge() {
   const location = useLocation();
   const navigate = useNavigate();
@@ -176,10 +192,11 @@ const handleCharge = async (method) => {
       return;
     }
 
-    if (method === '카카오페이') {
-      window.location.href = data.paymentUrl;
+    // ────────────── 여기!  기존 window.location.href 대신 분기 함수 호출
+    if (method === "카카오페이") {
+      openKakaoPayRedirect(data);     // ← 한 줄 교체
     } else {
-      alert('결제 요청이 성공적으로 처리되었습니다.');
+      alert("결제 요청이 성공적으로 처리되었습니다.");
     }
   } catch (error) {
     console.error('결제 요청 중 오류:', error);
@@ -218,50 +235,7 @@ async function requestKakaoPay(method: string, amount: number, coins: number, us
   const data = await response.json();
   return data.next_redirect_pc_url; // 결제 페이지 URL 반환
 }
-  // const handleCharge = async (method) => {
-  //   const selected = coinOptions.find((opt) => opt.id === selectedOption);
-  //   if (!selected) return;
-
-  //   const { data: { user } } = await supabase.auth.getUser();
-  //   if (!user) {
-  //     alert('로그인이 필요합니다.');
-  //     return;
-  //   }
-
-  //   const coinsToAdd = selected.coins;
-  //   const ticketsToAdd = Math.floor(coinsToAdd / 1000); // 예: 10,000코인 → 10티켓
-
-  //   const { data: profileData, error: profileError } = await supabase
-  //     .from('profiles')
-  //     .select('coin_balance, view_tickets')
-  //     .eq('id', user.id)
-  //     .single();
-
-  //   if (profileError || !profileData) {
-  //     console.error(profileError);
-  //     alert('사용자 정보 조회 실패');
-  //     return;
-  //   }
-
-  //   const updatedBalance = (profileData.coin_balance || 0) + coinsToAdd;
-  //   const updatedTickets = (profileData.view_tickets || 0) + ticketsToAdd;
-
-  //   const { error: updateError } = await supabase
-  //     .from('profiles')
-  //     .update({
-  //       coin_balance: updatedBalance,
-  //       view_tickets: updatedTickets,
-  //     })
-  //     .eq('id', user.id);
-
-  //   if (updateError) {
-  //     console.error(updateError);
-  //     alert('충전에 실패했습니다.');
-  //   } else {
-  //     alert(`결제방식: ${method}\n${coinsToAdd.toLocaleString()} 코인 충전 완료!`);
-  //     navigate(next);
-  //   }
-  // };  
+  
 
   // 테스트용 코인 1000개 충전 함수 추가
   const handleTestCharge = async () => {

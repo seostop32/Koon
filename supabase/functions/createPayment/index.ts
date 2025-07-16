@@ -5,16 +5,24 @@ serve(async (req) => {
   console.log('요청 method:', req.method);
 
   const corsHeaders = {
-    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Origin': '*',            // 혹은 'https://koon.vercel.app' 등 실제 도메인으로 바꿔도 됨
     'Access-Control-Allow-Methods': 'POST, OPTIONS',
     'Access-Control-Allow-Headers': 'Content-Type, Authorization',
   };
 
   if (req.method === 'OPTIONS') {
+    // CORS preflight 요청 처리
     return new Response(null, { status: 204, headers: corsHeaders });
   }
 
   try {
+    if (req.method !== 'POST') {
+      return new Response(JSON.stringify({ error: 'POST 요청만 허용됩니다.' }), {
+        status: 405,
+        headers: { 'Content-Type': 'application/json', ...corsHeaders },
+      });
+    }
+
     const json = await req.json();
     console.log('요청 본문:', json);
 
@@ -24,6 +32,9 @@ serve(async (req) => {
 
     if (!kakaoAdminKey) throw new Error('KAKAO_ADMIN_KEY 환경변수가 설정되어 있지 않습니다.');
 
+    // ✅ 프론트 실도메인으로 교체
+    const FRONT = "https://koon.vercel.app";   // 편하게 상수로    
+    // 카카오페이 결제 준비 API 호출
     const response = await fetch('https://kapi.kakao.com/v1/payment/ready', {
       method: 'POST',
       headers: {
@@ -39,19 +50,23 @@ serve(async (req) => {
         total_amount: amount.toString(),
         vat_amount: '0',
         tax_free_amount: '0',
-        approval_url: 'https://your-site.com/payment/success',
-        cancel_url: 'https://your-site.com/payment/cancel',
-        fail_url: 'https://your-site.com/payment/fail',
+        // approval_url: 'https://your-site.com/payment/success',
+        // cancel_url: 'https://your-site.com/payment/cancel',
+        // fail_url: 'https://your-site.com/payment/fail',
+        approval_url: `${FRONT}/payment-success`,  // ← 수정
+        cancel_url:   `${FRONT}/payment-cancel`,   // ← 수정
+        fail_url:     `${FRONT}/payment-fail`,     // ← 수정        
       }),
     });
 
+    const bodyText = await response.text();  // body를 텍스트로 한 번 읽어 저장
+    console.log("카카오 응답:", bodyText);
+
     if (!response.ok) {
-      const errorBody = await response.text();
-      console.error('카카오페이 API 오류 응답:', errorBody);
-      throw new Error(`카카오페이 요청 실패: ${errorBody}`);
+      throw new Error("카카오페이 요청 실패: " + bodyText);
     }
 
-    const data = await response.json();
+    const data = JSON.parse(bodyText);  // JSON으로 파싱해서 계속 사용
     console.log('카카오페이 응답 데이터:', data);
 
     return new Response(JSON.stringify({ paymentUrl: data.next_redirect_pc_url }), {
@@ -59,10 +74,9 @@ serve(async (req) => {
       headers: { 'Content-Type': 'application/json', ...corsHeaders },
     });
   } catch (error) {
-     console.error('createPayment 함수 에러:', error);
-    return new Response(JSON.stringify({ error: error.message }), {
-    status: 500,
-    headers: { 'Content-Type': 'application/json' }
+    console.error("🔥 createPayment 함수 오류:", error);
+    return new Response(JSON.stringify({ error: "Internal Server Error", detail: error.message }), {
+      status: 500,
     });
   }
 });
