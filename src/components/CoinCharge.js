@@ -121,6 +121,7 @@ const styles = {
 
 // ⬇︎ ⬇︎ ① 분기 함수 먼저 선언
 function openKakaoPayRedirect(kakaoRes) {
+  console.log("🎯 kakaoRes 전체:", kakaoRes);
   const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
 
   const redirectUrl = isMobile
