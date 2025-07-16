@@ -150,11 +150,11 @@ function CoinCharge() {
 
   const handleChargeComplete = () => {
     // 결제 성공 후 이동
-    if (next) {
+    if (typeof next === 'string' && next !== 'undefined' && next.trim() !== '') {
       navigate(next);
     } else {
-      console.warn('next가 undefined — 홈으로 이동');
-      navigate('/');             // 기본 경로로
+      console.warn('next가 잘못되었거나 undefined — 홈으로 이동');
+      navigate('/');
     }
   };
 
