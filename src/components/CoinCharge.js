@@ -149,8 +149,13 @@ function CoinCharge() {
   const handleBack = () => navigate(-1);
 
   const handleChargeComplete = () => {
-    // 실제 결제 로직 후...
-    navigate(next);
+    // 결제 성공 후 이동
+    if (next) {
+      navigate(next);
+    } else {
+      console.warn('next가 undefined — 홈으로 이동');
+      navigate('/');             // 기본 경로로
+    }
   };
 
   //코인결제
