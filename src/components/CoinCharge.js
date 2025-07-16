@@ -198,11 +198,12 @@ const handleCharge = async (method) => {
     });
 
     const data = await res.json();
+    console.log("카카오 응답:", data);  // 여기선 그냥 data 사용
     if (!res.ok) {
       alert(data.error || '결제 요청 실패');
       return;
     }
-    const kakaoRes = await res.json();
+    
     // ────────────── 여기!  기존 window.location.href 대신 분기 함수 호출
     if (method === "카카오페이") {
       openKakaoPayRedirect(data);     // ← 한 줄 교체
