@@ -33,7 +33,7 @@ function MyPage() {
 const [isAdmin, setIsAdmin] = useState(false);
 
   const handleChargeClick = () => {
-    navigate('/coin-charge');
+    navigate('/coin-charge', { state: { next: '/my-page' } }); // 충전 후 돌아올 경로
   };
 
     useEffect(() => {

@@ -136,6 +136,11 @@ function openKakaoPayRedirect(kakaoRes) {
 }
 
 function CoinCharge() {
+useEffect(() => {
+  console.log('🚀 location.state:', location.state);
+  console.log('📍 next 경로:', location.state?.next);
+}, []);
+  
   const location = useLocation();
   const navigate = useNavigate();
 
