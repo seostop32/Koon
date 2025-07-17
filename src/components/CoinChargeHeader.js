@@ -41,7 +41,7 @@ export default function CoinChargeHeader({ title = '코인 충전' }) {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
-        padding: '0 8px',   // 기존 16px에서 8px로 줄임
+        padding: '0 16px',
         borderBottom: '1px solid #eee',
         backgroundColor: '#fff',
         height: '52px',
@@ -62,7 +62,7 @@ export default function CoinChargeHeader({ title = '코인 충전' }) {
           alignItems: 'center',
           height: '100%',
           padding: 0,
-          marginLeft: '-8px',  // 왼쪽 끝으로 밀기
+          // marginLeft: '-8px',  // 왼쪽 끝으로 밀기
         }}
         aria-label="뒤로가기"
       >
@@ -93,7 +93,7 @@ export default function CoinChargeHeader({ title = '코인 충전' }) {
           overflow: 'hidden',
           boxShadow: '0 0 3px rgba(0,0,0,0.2)',
           pointerEvents: 'none',
-          marginRight: '-8px',  // 오른쪽 끝으로 밀기
+          // marginRight: '-8px',  // 오른쪽 끝으로 밀기
         }}
         aria-label="프로필 페이지로 이동"
       >

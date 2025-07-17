@@ -330,16 +330,19 @@ function ProfileDetailEdit() {
   const handleSave = async () => {
     if (!profile) return;
 
-    // 키와 나이 밸리데이션
-    if (!profile.age || typeof profile.age !== 'number') {
-      alert('나이를 입력해주세요.');
-      return;
-    }
+    // 숫자로 변환 시도
+      const ageNum = Number(profile.age);
+      const heightNum = Number(profile.height);
 
-    if (!profile.height || typeof profile.height !== 'number') {
-      alert('키를 입력해주세요.');
-      return;
-    }
+      if (!ageNum || isNaN(ageNum) || ageNum <= 0) {
+        alert('유효한 나이를 입력해주세요.');
+        return;
+      }
+
+      if (!heightNum || isNaN(heightNum) || heightNum <= 0) {
+        alert('유효한 키를 입력해주세요.');
+        return;
+      }
 
     const updatedProfile = {
       ...profile,
