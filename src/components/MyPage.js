@@ -100,21 +100,17 @@ const [isAdmin, setIsAdmin] = useState(false);
               <p style={styles.title}>
               <span style={styles.orangeStar}>✦</span> 보유 코인
               </p>
-              <section style={{ ...styles.coinSection, marginBottom: 24 }}>
+              <section style={{ ...styles.coinSection, marginBottom: 16 }}>
                 <div>
                   {[
-                    { 
-                      label: '보유 코인', 
-                      content: (
+                    { label: '보유 코인', content: (
                         <div style={{ display: 'flex', alignItems: 'center' }}>
                           <FaBitcoin style={{ marginRight: 6, color: '#f2a900' }} />
                           {profile?.coin_balance?.toLocaleString() ?? 0}
                         </div>
                       )
                     },
-                    { 
-                      label: '구매/사용 내역', 
-                      content: (
+                    { label: '구매/사용 내역', content: (
                         <div style={{ display: 'flex', alignItems: 'center' }}>
                           &gt;
                         </div>
@@ -125,32 +121,22 @@ const [isAdmin, setIsAdmin] = useState(false);
                       key={idx}
                       style={{
                         ...styles.coinRow,
-                        marginBottom: idx === 0 ? 16 : 0,  // 보유 코인과 구매내역 사이 간격 충분히
-                        paddingTop: 12,
-                        paddingBottom: 12,
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        alignItems: 'center',
-                        cursor: item.label === '구매/사용 내역' ? 'pointer' : 'default',
-                        borderBottom: idx === 0 ? '1px solid #eee' : 'none',
-                        borderRadius: idx === 0 ? '8px 8px 0 0' : '0 0 8px 8px',
-                        backgroundColor: '#fff',
+                        marginBottom: idx === 0 ? 8 : 0,  // 항목 간 간격 줄임
+                        paddingTop: 4,
+                        paddingBottom: 4,
                       }}
                       onClick={() => {
                         if (item.label === '구매/사용 내역') {
                           navigate('/coin-history');
                         }
-                      }}
+                      }}                
                     >
                       <p
                         style={{
                           ...styles.coinText,
-                          margin: 0,
+                          margin: 0,       // p 기본 위아래 margin 없애기
                           padding: 0,
-                          lineHeight: 1.2,
-                          fontWeight: '500',
-                          fontSize: 16,
-                          color: '#333',
+                          lineHeight: 1.2, // 줄 높이 줄이기
                         }}
                       >
                         {item.label}
@@ -163,6 +149,7 @@ const [isAdmin, setIsAdmin] = useState(false);
                           margin: 0,
                           padding: 0,
                           lineHeight: 1.2,
+                          cursor: item.label === '사용 내역' ? 'pointer' : 'default',
                         }}
                       >
                         {item.content}
@@ -170,9 +157,7 @@ const [isAdmin, setIsAdmin] = useState(false);
                     </div>
                   ))}
                 </div>
-                <button onClick={handleChargeClick} style={styles.chargeButton}>
-                  충전하기
-                </button>
+                <button onClick={handleChargeClick} style={styles.chargeButton}>충전하기</button>
               </section>
               </>
             )}
@@ -182,43 +167,36 @@ const [isAdmin, setIsAdmin] = useState(false);
         </p>         
         <section style={{ ...styles.coinSection, marginBottom: 16 }}>
             <div>
-              {[
-                { label: '계정 관리', path: '/account' },
-                { label: '알림 설정', path: '/notificationSettings' },
-                { label: '고객 1:1 문의', path: '/help' },
-                { label: '차단 목록', path: '/blockList' },
-              ].map((item) => (
-                <div
-                  key={item.path}
-                  style={{
-                    ...styles.coinRow,
-                    paddingTop: 12,
-                    paddingBottom: 12,
-                    marginBottom: 12,  // 간격 넉넉하게
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    cursor: 'pointer',
-                    borderBottom: '1px solid #eee',  // 구분선 넣기
+            {[
+              { label: '계정 관리', path: '/account' },
+              { label: '알림 설정', path: '/notificationSettings' },
+              { label: '고객 1:1 문의', path: '/help' },
+              { label: '차단 목록', path: '/blockList' },
+            ].map((item, idx) => (
+              <div
+                key={item.path}
+                style={{
+                  ...styles.coinRow,
+                  marginBottom: idx < 2 ? 1 : 0,
+                }}
+                onClick={() => navigate(item.path)}  // 전체 줄에 클릭 이벤트 추가
+              >
+                <span style={{ ...styles.coinText, margin: 0, padding: 0, lineHeight: 2 }}>
+                  {item.label}
+                </span>
+                <span
+                  style={{ ...styles.coinAmount, cursor: 'pointer', margin: 0, padding: 0, lineHeight: 2 }}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    navigate(item.path);
                   }}
-                  onClick={() => navigate(item.path)} // 전체 줄에 클릭 이벤트 추가
                 >
-                  <span style={{ ...styles.coinText, margin: 0, padding: 0, lineHeight: 1.5 }}>
-                    {item.label}
-                  </span>
-                  <span
-                    style={{ ...styles.coinAmount, cursor: 'pointer', margin: 0, padding: 0, lineHeight: 1.5 }}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      navigate(item.path);
-                    }}
-                  >
-                    &gt;
-                  </span>
-                </div>
-              ))}
-            </div>
-          </section>     
+                  &gt;
+                </span>
+              </div>
+            ))}
+            </div>            
+        </section>        
 
         {isAdmin && (
           <div style={styles.coinRow}>
