@@ -330,6 +330,17 @@ function ProfileDetailEdit() {
   const handleSave = async () => {
     if (!profile) return;
 
+    // 키와 나이 밸리데이션
+    if (!profile.age || typeof profile.age !== 'number') {
+      alert('나이를 입력해주세요.');
+      return;
+    }
+
+    if (!profile.height || typeof profile.height !== 'number') {
+      alert('키를 입력해주세요.');
+      return;
+    }
+
     const updatedProfile = {
       ...profile,
       avatar_url:

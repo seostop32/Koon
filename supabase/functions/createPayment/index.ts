@@ -34,7 +34,10 @@ serve(async (req) => {
 
     // ✅ 프론트 실도메인으로 교체
     const FRONT = "https://koon.vercel.app";   // 편하게 상수로    
+    
     // 카카오페이 결제 준비 API 호출
+    const orderId = `order_${userId}_${Date.now()}`;  // 주문 고유번호 만들기
+
     const response = await fetch('https://kapi.kakao.com/v1/payment/ready', {
       method: 'POST',
       headers: {
@@ -43,19 +46,16 @@ serve(async (req) => {
       },
       body: new URLSearchParams({
         cid: 'TC0ONETIME',
-        partner_order_id: userId,
+        partner_order_id: orderId,       // 주문 번호 바꿔서 보내기
         partner_user_id: userId,
         item_name: '코인 충전',
         quantity: '1',
-        total_amount: amount.toString(),
+        total_amount: amount.toString(),  // 1 이상 숫자여야 함
         vat_amount: '0',
         tax_free_amount: '0',
-        // approval_url: 'https://your-site.com/payment/success',
-        // cancel_url: 'https://your-site.com/payment/cancel',
-        // fail_url: 'https://your-site.com/payment/fail',
-        approval_url: `${FRONT}/payment-success`,  // ← 수정
-        cancel_url:   `${FRONT}/payment-cancel`,   // ← 수정
-        fail_url:     `${FRONT}/payment-fail`,     // ← 수정        
+        approval_url: `${FRONT}/payment-success`,
+        cancel_url:   `${FRONT}/payment-cancel`,
+        fail_url:     `${FRONT}/payment-fail`,        
       }),
     });
 
