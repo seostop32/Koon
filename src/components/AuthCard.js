@@ -159,7 +159,7 @@ function AuthCard({ mode: initialMode = 'login', onAuthSuccess = () => {} }) {
               autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
               style={{
                 width: '100%',
-                padding: '10px 40px 10px 10px',
+                padding: '10px 40px 10px 10px', // 오른쪽 아이콘 공간
                 borderRadius: 5,
                 border: '1px solid #ccc',
                 boxSizing: 'border-box',
@@ -167,22 +167,24 @@ function AuthCard({ mode: initialMode = 'login', onAuthSuccess = () => {} }) {
             />
             <button
               type="button"
-              onClick={() => setShowPassword((p) => !p)}
+              onClick={() => setShowPassword((prev) => !prev)}
               style={{
                 position: 'absolute',
-                right: 8,
+                right: 10,
                 top: '50%',
                 transform: 'translateY(-50%)',
-                border: 'none',
                 background: 'transparent',
-                padding: 4,
+                border: 'none',
+                padding: 0,
                 cursor: 'pointer',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
+                zIndex: 2,
               }}
             >
-              {showPassword ? <VisibilityOff fontSize="small" /> : <Visibility fontSize="small" />}
+              {showPassword ? <Visibility fontSize="small" /> : <VisibilityOff fontSize="small" />}
+              {/* {showPassword ? <VisibilityOff /> : <Visibility />} */}
             </button>
           </div>
         )}

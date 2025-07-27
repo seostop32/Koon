@@ -114,6 +114,9 @@ console.log(profileData[0]?.nickname);  // 첫 번째 프로필 닉네임 출력
 
     const isNotificationOn = setting?.message_notification !== false;
 
+    // 최신 메시지가 위로 오도록 created_at 내림차순 정렬
+    processedChats.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+    
     // 2️⃣ finalChatList 만들 때
     const finalChatList = processedChats.map((chat) => {
       const unreadCount = chat.unread_count || 0;

@@ -17,3 +17,8 @@ html, body {
   overscroll-behavior: contain;
   user-select: none;           /* 선택 막기 (필요시) */
 }
+
+/* 👇 index.css 또는 App.css 의 제일 아래에 추가 */
+input[type="password"]::-ms-reveal {
+  display: none;
+}
