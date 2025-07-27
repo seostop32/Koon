@@ -114,7 +114,6 @@ function ProfileDetailEdit() {
     loadModels();
   }, []);
 
-
   useEffect(() => {
     const fetchProfile = async () => {
       setLoading(true);
@@ -129,9 +128,11 @@ function ProfileDetailEdit() {
         setProfile(null);
       } else {
         setProfile(data);
-        // 메인 사진 인덱스 초기값 설정: avatar_url이 profile_photos에 있으면 해당 인덱스, 없으면 null
+        // 메인 사진 인덱스 초기값 설정: avatar_url이 profile_photos에 있고, 동영상(.mp4)이 아니면 해당 인덱스, 없으면 null
         if (data.profile_photos && data.avatar_url) {
-          const idx = data.profile_photos.findIndex((url) => url === data.avatar_url);
+          const idx = data.profile_photos.findIndex(
+            (url) => url === data.avatar_url && !url.toLowerCase().endsWith('.mp4')
+          );
           setMainPhotoIndex(idx >= 0 ? idx : null);
         } else {
           setMainPhotoIndex(null);
@@ -142,6 +143,33 @@ function ProfileDetailEdit() {
 
     fetchProfile();
   }, [id]);
+  // useEffect(() => {
+  //   const fetchProfile = async () => {
+  //     setLoading(true);
+  //     const { data, error } = await supabase
+  //       .from('profiles')
+  //       .select('*')
+  //       .eq('id', id)
+  //       .single();
+
+  //     if (error) {
+  //       console.error('프로필 불러오기 오류:', error);
+  //       setProfile(null);
+  //     } else {
+  //       setProfile(data);
+  //       // 메인 사진 인덱스 초기값 설정: avatar_url이 profile_photos에 있으면 해당 인덱스, 없으면 null
+  //       if (data.profile_photos && data.avatar_url) {
+  //         const idx = data.profile_photos.findIndex((url) => url === data.avatar_url);
+  //         setMainPhotoIndex(idx >= 0 ? idx : null);
+  //       } else {
+  //         setMainPhotoIndex(null);
+  //       }
+  //     }
+  //     setLoading(false);
+  //   };
+
+  //   fetchProfile();
+  // }, [id]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -1380,55 +1408,54 @@ function ProfileDetailEdit() {
 
           <div style={styles.photoContainer}>
             {profile.profile_photos?.map((photoUrl, index) => {
-              const isMain = index === mainPhotoIndex;
-              const isBlurred = false; // 편집 화면에서는 항상 false
-              const isVideo = photoUrl.toLowerCase().endsWith('.mp4');
+            const isVideo = photoUrl.toLowerCase().endsWith('.mp4');
+            const isMain = index === mainPhotoIndex;
 
-              return (
-                <div key={index} style={styles.photoWrapper}>
-                  {isVideo ? (
-                    <video
-                      src={photoUrl}
-                      autoPlay
-                      muted
-                      loop
-                      playsInline
-                      style={{
-                        ...styles.photo,
-                        filter: isBlurred ? 'blur(8px)' : 'none',
-                        border: isMain ? '2px solid #4CAF50' : '1px solid #ccc',
-                      }}
-                    />
-                  ) : (
-                    <img
-                      src={photoUrl}
-                      alt={`Profile ${index}`}
-                      style={{
-                        ...styles.photo,
-                        filter: isBlurred ? 'blur(8px)' : 'none',
-                        border: isMain ? '2px solid #4CAF50' : '1px solid #ccc',
-                      }}
-                    />
-                  )}
-                  <button
-                    type="button"
-                    onClick={() => handleDeletePhoto(index)}
-                    style={styles.deleteButton}
-                    title="사진 삭제"
-                  >
-                    삭제
-                  </button>
-                  <label style={styles.checkboxLabel}>
-                    <input
-                      type="checkbox"
-                      checked={mainPhotoIndex === index}
-                      onChange={() => setMainPhotoIndex(index)}
-                    />
-                    메인
-                  </label>
-                </div>
-              );
-            })}                              
+            return (
+              <div key={index} style={styles.photoWrapper}>
+                {isVideo ? (
+                  <video
+                    src={photoUrl}
+                    autoPlay
+                    muted
+                    loop
+                    playsInline
+                    style={styles.photo}
+                  />
+                ) : (
+                  <img
+                    src={photoUrl}
+                    alt={`Profile ${index}`}
+                    style={{
+                      ...styles.photo,
+                      border: isMain ? '2px solid #4CAF50' : '1px solid #ccc',
+                    }}
+                  />
+                )}
+                {/* 동영상이면 메인 체크박스 숨기기 */}
+                {!isVideo && (
+                  <>
+                    <button
+                      type="button"
+                      onClick={() => handleDeletePhoto(index)}
+                      style={styles.deleteButton}
+                      title="사진 삭제"
+                    >
+                      삭제
+                    </button>
+                    <label style={styles.checkboxLabel}>
+                      <input
+                        type="checkbox"
+                        checked={isMain}
+                        onChange={() => setMainPhotoIndex(index)}
+                      />
+                      메인
+                    </label>
+                  </>
+                )}
+              </div>
+            );
+          })}                     
 
             <div style={styles.uploadWrapper}>
               <input

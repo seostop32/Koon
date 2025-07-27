@@ -807,26 +807,44 @@ console.log('profile.profile_photos=========',profile.profile_photos[0])
                         profileUserId: id,
                         photoUrl,
                         avatarUrl: imageUrl,
-                        unlockedPhotos,  // 꼭 넣기
+                        unlockedPhotos,
                       });
+
+                      const isVideo = photoUrl.toLowerCase().endsWith('.mp4');
+
                       return (
-                        <img
-                          key={index}
-                          src={photoUrl}
-                          alt={`special-${index}`}
-                          style={{ ...styles.photo, filter: isBlurred ? 'blur(8px)' : 'none' }}
-                          // style={{ filter: unlockedPhotos[photoUrl] ? 'none' : 'blur(5px)' }}
-                          onClick={() => {
-                            console.log('이미지 클릭됨!', index);
-                            handleClickPhoto(index);
-                          }}
-                        />
+                        <div key={index} style={{ position: 'relative' }}>
+                          {isVideo ? (
+                            <video
+                              src={photoUrl}
+                              autoPlay
+                              muted
+                              loop
+                              playsInline
+                              style={{ ...styles.photo, filter: isBlurred ? 'blur(8px)' : 'none', cursor: 'pointer' }}
+                              onClick={() => {
+                                console.log('동영상 클릭됨!', index);
+                                handleClickPhoto(index);
+                              }}
+                            />
+                          ) : (
+                            <img
+                              src={photoUrl}
+                              alt={`special-${index}`}
+                              style={{ ...styles.photo, filter: isBlurred ? 'blur(8px)' : 'none', cursor: 'pointer' }}
+                              onClick={() => {
+                                console.log('이미지 클릭됨!', index);
+                                handleClickPhoto(index);
+                              }}
+                            />
+                          )}
+                        </div>
                       );
                     })
                   ) : (
                     <p>스페셜 사진이 없습니다.</p>
                   )}
-                </div>                
+                </div>                                
               </div>
             </div>
           </div>
