@@ -185,18 +185,34 @@ console.log('[ProfileIntro] photos:========', photos);
           style={styles.slider}
           onScroll={onScroll}
         >
-          {photos.map((url, idx) => {
-            const isBlurred = shouldBlurPhoto({
-              isUnlocked,
-              isFullyUnlocked,
-              userId,
-              profileUserId,
-              photoUrl: url,
-              avatarUrl,
-            });
+        {photos.map((url, idx) => {
+          const isBlurred = shouldBlurPhoto({
+            isUnlocked,
+            isFullyUnlocked,
+            userId,
+            profileUserId,
+            photoUrl: url,
+            avatarUrl,
+          });
 
-            return (
-              <div key={idx} style={styles.slide}>
+          const isVideo = url.toLowerCase().endsWith('.mp4');
+
+          return (
+            <div key={idx} style={styles.slide}>
+              {isVideo ? (
+                <video
+                  src={url}
+                  autoPlay
+                  muted
+                  loop
+                  playsInline
+                  style={{
+                    ...styles.image,
+                    filter: isBlurred ? 'blur(8px)' : 'none',
+                    transition: 'filter 0.3s ease',
+                  }}
+                />
+              ) : (
                 <img
                   src={url}
                   alt={`photo-${idx}`}
@@ -206,9 +222,10 @@ console.log('[ProfileIntro] photos:========', photos);
                     transition: 'filter 0.3s ease',
                   }}
                 />
-              </div>
-            );
-          })}
+              )}
+            </div>
+          );
+        })}
         </div>
 
         {photos.length > 1 && (

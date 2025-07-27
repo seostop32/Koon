@@ -232,6 +232,8 @@ function ProfileDetailEdit() {
   };
 
   //파일업로드벨리데이션  
+  const MAX_FILE_SIZE = 10 * 1024 * 1024; // 5MB
+
   const handleSpecialPhotoChange = async (e) => {
     if (!modelsLoaded) {
       alert("모델이 아직 로드되지 않았습니다. 잠시만 기다려주세요.");
@@ -242,22 +244,43 @@ function ProfileDetailEdit() {
     setIsProcessing(true);
 
     for (const file of files) {
-      await new Promise(resolve => setTimeout(resolve, 100)); // 100ms 쉬어가기 (UI 블럭 방지)
+      // 파일 크기 검사
+      if (file.size > MAX_FILE_SIZE) {
+        alert(`"${file.name}"의 파일 크기가 너무 큽니다. 10MB 이하의 파일만 업로드할 수 있습니다.`);
+        continue; // 크기가 큰 파일은 건너뜁니다.
+      }
+
+      // 파일 타입 검사 (이미지 및 비디오)
+      const isImage = file.type.startsWith('image/');
+      const isVideo = file.type.startsWith('video/');
+
+      if (!isImage && !isVideo) {
+        alert(`"${file.name}"은 지원되지 않는 파일 형식입니다. 이미지 또는 동영상 파일만 업로드할 수 있습니다.`);
+        continue;
+      }      
 
       try {
-        // 이미지 해상도 검사
-        const isValidResolution = await isImageLargeEnough(file);
-        if (!isValidResolution) {
-          alert(`"${file.name}"의 해상도가 너무 낮습니다. 최소 500x500 이상 이미지를 업로드해주세요.`);
-          continue;
-        }
-
-        // 얼굴 검출
-        const img = await faceapi.bufferToImage(file);
-        const detection = await faceapi.detectSingleFace(img, new faceapi.SsdMobilenetv1Options());
-        if (!detection) {
-          alert(`"${file.name}"에서 얼굴을 찾을 수 없습니다.`);
-          continue;
+        if (isImage) {
+          // 이미지 해상도 확인
+          const isValidResolution = await isImageLargeEnough(file);
+          if (!isValidResolution) {
+            alert(`"${file.name}"의 해상도가 너무 낮습니다. 최소 500x500 이상 이미지를 업로드해주세요.`);
+            continue;
+          }
+          
+          // 얼굴 검출
+          const img = await faceapi.bufferToImage(file);
+          const detection = await faceapi.detectSingleFace(img, new faceapi.SsdMobilenetv1Options());
+          if (!detection) {
+            alert(`"${file.name}"에서 얼굴을 찾을 수 없습니다.`);
+            continue;
+          }
+        } else if (isVideo) {
+          // 비디오 업로드 시 추가적인 체크 필요 (예: 파일 포맷)
+          if (!file.type.includes('mp4')) {
+            alert(`"${file.name}"은 지원되지 않는 비디오 형식입니다. mp4 파일만 업로드할 수 있습니다.`);
+            continue;
+          }
         }
 
         // 조건 만족 시 업로드
@@ -1356,75 +1379,65 @@ function ProfileDetailEdit() {
           </div>
 
           <div style={styles.photoContainer}>
-                  {profile.profile_photos?.map((photoUrl, index) => {
-                    const isMain = index === mainPhotoIndex;
-                    const isBlurred = false; // 편집 화면에서는 항상 false
+            {profile.profile_photos?.map((photoUrl, index) => {
+              const isMain = index === mainPhotoIndex;
+              const isBlurred = false; // 편집 화면에서는 항상 false
+              const isVideo = photoUrl.toLowerCase().endsWith('.mp4');
 
-                    return (
-                      <div key={index} style={styles.photoWrapper}>
-                        <img
-                          src={photoUrl}
-                          alt={`Profile ${index}`}
-                          style={{
-                            ...styles.photo,
-                            filter: isBlurred ? 'blur(8px)' : 'none',
-                            border: isMain ? '2px solid #4CAF50' : '1px solid #ccc',
-                          }}
-                        />
-                        <button
-                          type="button"
-                          onClick={() => handleDeletePhoto(index)}
-                          style={styles.deleteButton}
-                          title="사진 삭제"
-                        >
-                          삭제
-                        </button>
-                        <label style={styles.checkboxLabel}>
-                          <input
-                            type="checkbox"
-                            checked={mainPhotoIndex === index}
-                            onChange={() => setMainPhotoIndex(index)}
-                          />
-                          메인
-                        </label>
-                      </div>
-                    );
-                  })}            
-            {/* {profile.profile_photos?.map((photoUrl, index) => (
-              <div key={index} style={styles.photoWrapper}>
-                <img
-                  src={photoUrl}
-                  alt={`Profile ${index}`}
-                  style={styles.photo}
-                />
-                <button
-                  type="button"
-                  onClick={() => handleDeletePhoto(index)}
-                  style={styles.deleteButton}
-                  title="사진 삭제"
-                >
-                  삭제
-                </button>
-                <label style={styles.checkboxLabel}>
-                  <input
-                    type="checkbox"
-                    checked={mainPhotoIndex === index}
-                    onChange={() => setMainPhotoIndex(index)}
-                  />
-                  메인
-                </label>
-              </div>
-            ))} */}
+              return (
+                <div key={index} style={styles.photoWrapper}>
+                  {isVideo ? (
+                    <video
+                      src={photoUrl}
+                      autoPlay
+                      muted
+                      loop
+                      playsInline
+                      style={{
+                        ...styles.photo,
+                        filter: isBlurred ? 'blur(8px)' : 'none',
+                        border: isMain ? '2px solid #4CAF50' : '1px solid #ccc',
+                      }}
+                    />
+                  ) : (
+                    <img
+                      src={photoUrl}
+                      alt={`Profile ${index}`}
+                      style={{
+                        ...styles.photo,
+                        filter: isBlurred ? 'blur(8px)' : 'none',
+                        border: isMain ? '2px solid #4CAF50' : '1px solid #ccc',
+                      }}
+                    />
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => handleDeletePhoto(index)}
+                    style={styles.deleteButton}
+                    title="사진 삭제"
+                  >
+                    삭제
+                  </button>
+                  <label style={styles.checkboxLabel}>
+                    <input
+                      type="checkbox"
+                      checked={mainPhotoIndex === index}
+                      onChange={() => setMainPhotoIndex(index)}
+                    />
+                    메인
+                  </label>
+                </div>
+              );
+            })}                              
 
             <div style={styles.uploadWrapper}>
               <input
                 type="file"
-                accept="image/*"
+                accept="image/*,video/*"  // 이미지와 동영상 모두 허용
                 multiple
-                style={{ display: 'none' }}
                 ref={fileInputRef}
+                style={{ display: 'none' }}
                 onChange={handleSpecialPhotoChange}
-                disabled={isProcessing}
               />
               <button
                 type="button"
@@ -1432,7 +1445,7 @@ function ProfileDetailEdit() {
                 style={styles.uploadButton}
                 disabled={isProcessing}
               >
-                {isProcessing ? '업로드 중...' : '사진 업로드'}
+                {isProcessing ? '업로드 중...' : '업로드'}
               </button>
             </div>
           </div>
