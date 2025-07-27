@@ -202,9 +202,7 @@ console.log('[ProfileIntro] photos:========', photos);
               {isVideo ? (
                 <video
                   src={url}
-                  autoPlay
-                  muted
-                  loop
+                  controls        // 사용자가 직접 재생하고 소리 조절
                   playsInline
                   style={{
                     ...styles.image,

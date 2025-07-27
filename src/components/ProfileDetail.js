@@ -817,10 +817,8 @@ console.log('profile.profile_photos=========',profile.profile_photos[0])
                           {isVideo ? (
                             <video
                               src={photoUrl}
-                              autoPlay
-                              muted
-                              loop
-                              playsInline
+                              controls           // 사용자 조작 UI 보임
+                              playsInline        // 모바일 전체화면 방지
                               style={{ ...styles.photo, filter: isBlurred ? 'blur(8px)' : 'none', cursor: 'pointer' }}
                               onClick={() => {
                                 console.log('동영상 클릭됨!', index);

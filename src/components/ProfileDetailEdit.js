@@ -1416,11 +1416,9 @@ function ProfileDetailEdit() {
                 {isVideo ? (
                   <video
                     src={photoUrl}
-                    autoPlay
-                    muted
-                    loop
+                    controls
                     playsInline
-                    style={styles.photo}
+                    style={{ ...styles.photo }}
                   />
                 ) : (
                   <img
