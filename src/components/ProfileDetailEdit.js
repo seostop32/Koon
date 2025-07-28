@@ -260,7 +260,7 @@ function ProfileDetailEdit() {
   };
 
   //파일업로드벨리데이션  
-  const MAX_FILE_SIZE = 10 * 1024 * 1024; // 5MB
+  const MAX_FILE_SIZE = 20 * 1024 * 1024; // 5MB
 
   const handleSpecialPhotoChange = async (e) => {
     if (!modelsLoaded) {
@@ -274,7 +274,7 @@ function ProfileDetailEdit() {
     for (const file of files) {
       // 파일 크기 검사
       if (file.size > MAX_FILE_SIZE) {
-        alert(`"${file.name}"의 파일 크기가 너무 큽니다. 10MB 이하의 파일만 업로드할 수 있습니다.`);
+        alert(`"${file.name}"의 파일 크기가 너무 큽니다. 20MB 이하의 파일만 업로드할 수 있습니다.`);
         continue; // 크기가 큰 파일은 건너뜁니다.
       }
 
@@ -1407,55 +1407,61 @@ function ProfileDetailEdit() {
           </div>
 
           <div style={styles.photoContainer}>
-            {profile.profile_photos?.map((photoUrl, index) => {
-            const isVideo = photoUrl.toLowerCase().endsWith('.mp4');
-            const isMain = index === mainPhotoIndex;
+              {profile.profile_photos?.map((photoUrl, index) => {
+                const isMain = index === mainPhotoIndex;
+                const isBlurred = false; // 편집 화면에서는 항상 false
+                const isVideo = photoUrl.toLowerCase().endsWith('.mp4');
 
-            return (
-              <div key={index} style={styles.photoWrapper}>
-                {isVideo ? (
-                  <video
-                    src={photoUrl}
-                    autoPlay
-                    muted
-                    loop
-                    playsInline
-                    style={styles.photo}
-                  />
-                ) : (
-                  <img
-                    src={photoUrl}
-                    alt={`Profile ${index}`}
-                    style={{
-                      ...styles.photo,
-                      border: isMain ? '2px solid #4CAF50' : '1px solid #ccc',
-                    }}
-                  />
-                )}
-                {/* 동영상이면 메인 체크박스 숨기기 */}
-                {!isVideo && (
-                  <>
+                return (
+                  <div key={index} style={styles.photoWrapper}>
+                    {isVideo ? (
+                      <video
+                        src={photoUrl}
+                        muted
+                        loop
+                        playsInline
+                        style={{
+                          ...styles.photo,
+                          filter: isBlurred ? 'blur(8px)' : 'none',
+                          border: isMain ? '2px solid #4CAF50' : '1px solid #ccc',
+                        }}
+                      />
+                    ) : (
+                      <img
+                        src={photoUrl}
+                        alt={`Profile ${index}`}
+                        style={{
+                          ...styles.photo,
+                          filter: isBlurred ? 'blur(8px)' : 'none',
+                          border: isMain ? '2px solid #4CAF50' : '1px solid #ccc',
+                        }}
+                      />
+                    )}
+
+                    {/* 삭제 버튼 공통 */}
                     <button
                       type="button"
                       onClick={() => handleDeletePhoto(index)}
                       style={styles.deleteButton}
-                      title="사진 삭제"
+                      title="사진/동영상 삭제"
                     >
                       삭제
                     </button>
-                    <label style={styles.checkboxLabel}>
-                      <input
-                        type="checkbox"
-                        checked={isMain}
-                        onChange={() => setMainPhotoIndex(index)}
-                      />
-                      메인
-                    </label>
-                  </>
-                )}
-              </div>
-            );
-          })}                     
+
+                    {/* 메인 선택 체크박스는 동영상이면 안 보이게 */}
+                    {!isVideo && (
+                      <label style={styles.checkboxLabel}>
+                        <input
+                          type="checkbox"
+                          checked={mainPhotoIndex === index}
+                          onChange={() => setMainPhotoIndex(index)}
+                        />
+                        메인
+                      </label>
+                    )}
+                  </div>
+                );
+              })}                           
 
             <div style={styles.uploadWrapper}>
               <input

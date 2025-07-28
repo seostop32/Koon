@@ -610,7 +610,7 @@ const [userGender, setUserGender] = useState(null);  // 로그인한 유저의 �
           marginBottom: 6
         }}>
           이상형을 설정 후, 이상형 찾기 버튼을 눌러주세요. <br />
-          이상형 찾기를 실행하면 10코인이 차감됩니다.
+          {/* 이상형 찾기를 실행하면 10코인이 차감됩니다. */}
         </p>
 
 
