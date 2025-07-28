@@ -951,7 +951,7 @@ const styles = {
     justifyContent: 'space-around',
   },
   footerButton: {
-    fontSize: 24,
+    fontSize: 20,
     cursor: 'pointer',
   },
   header: {
