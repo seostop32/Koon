@@ -16,59 +16,55 @@ export default function VideoSlide({ url, isBlurred }) {
     }
   };
 
-  const styles = {
-    container: {
-        position: 'relative',
-        display: 'inline-block',
-        borderRadius: 12,
-        overflow: 'hidden',
-        boxShadow: '0 4px 10px rgba(0,0,0,0.1)',
-    },
-    video: {
-        width: '100%',
-        height: 'auto',
-        display: 'block',
-        filter: isBlurred ? 'blur(8px)' : 'none',
-        transition: 'filter 0.3s ease',
-        borderRadius: 12,
-        userSelect: 'none',
-    },
-    button: {
-        position: 'absolute',
-        top: 12,
-        right: 12,
-        zIndex: 2,
-        background: 'rgba(0,0,0,0.6)',
-        color: '#fff',
-        border: '2px solid #fff',      // 하얀색 테두리 추가
-        boxShadow: '0 0 8px rgba(255,255,255,0.8)',  // 반짝이는 그림자 효과
-        borderRadius: '50%',
-        width: 44,
-        height: 44,
-        fontSize: 22,
-        cursor: 'pointer',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        transition: 'background 0.2s ease, box-shadow 0.2s ease',
-    },
+    const styles = {
+        playPauseButton: {
+            position: 'absolute',
+            top: '50%',
+            left: '50%',
+            transform: 'translate(-50%, -50%)',
+            zIndex: 2,
+            background: 'rgba(0, 0, 0, 0.6)',
+            color: '#fff',
+            border: 'none',
+            borderRadius: '50%',
+            width: '40px',
+            height: '40px',
+            fontSize: '18px',
+            cursor: 'pointer',
+            padding: 0,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            lineHeight: '1',
+        }
     };
 
   return (
     <div style={styles.container}>
-        <video
-        ref={videoRef}
-        src={url}
-        playsInline
-        controls
-        autoPlay
-        muted
-        style={{
-            ...styles.image,
-            filter: isBlurred ? 'blur(8px)' : 'none',
-            transition: 'filter 0.3s ease',
-        }}
-        /> 
+    <video
+    ref={videoRef}
+    src={url}
+    autoPlay={false}
+    muted={false}
+    controls
+    playsInline
+    onCanPlay={() => {
+        videoRef.current?.play().catch((err) => {
+        console.warn('Autoplay with sound blocked:', err);
+        });
+    }}
+    style={{
+        ...styles.image,
+        filter: isBlurred ? 'blur(8px)' : 'none',
+        transition: 'filter 0.3s ease',
+    }}
+    />
+    {/* <button
+    style={styles.playPauseButton}
+    onClick={handlePlayPause}
+    >
+    {isPlaying ? '⏸' : '▶'}
+    </button> */}
     </div>
   );
 }

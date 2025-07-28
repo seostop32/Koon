@@ -29,6 +29,9 @@ const FavoritesPage = () => {
     }
 
     let query;
+    // 일주일 전 날짜 ISO 형식으로 만들기
+    const oneWeekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+
     if (activeTab === 'likedByMe') {
       query = supabase
         .from('likes')
@@ -48,6 +51,7 @@ const FavoritesPage = () => {
           )
         `)
         .eq('liker_id', user.id)
+        .gte('created_at', oneWeekAgo)  // ✅ 일주일 내 필터 추가
         .order('created_at', { ascending: false });
     } else {
       query = supabase
@@ -68,6 +72,7 @@ const FavoritesPage = () => {
           )
         `)
         .eq('liked_id', user.id)
+        .gte('created_at', oneWeekAgo)  // ✅ 일주일 내 필터 추가
         .order('created_at', { ascending: false });
     }
 

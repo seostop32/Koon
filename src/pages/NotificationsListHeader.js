@@ -41,7 +41,7 @@ export default function SettingsPageHeader({ title = '알림' }) {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
-        padding: '0 16px',
+        padding: '0 8px',
         borderBottom: '1px solid #eee',
         backgroundColor: '#fff',
         height: '52px',
@@ -62,6 +62,7 @@ export default function SettingsPageHeader({ title = '알림' }) {
           alignItems: 'center',
           height: '100%',
           padding: 0,
+          marginLeft: '-8px',     // 왼쪽 끝으로 더 밀기
         }}
         aria-label="뒤로가기"
       >
@@ -85,13 +86,14 @@ export default function SettingsPageHeader({ title = '알림' }) {
 
       <div
         style={{
-          cursor: 'default',           // 클릭 느낌 제거
+          cursor: 'default',
           height: '30px',
           width: '30px',
           borderRadius: '50%',
           overflow: 'hidden',
           boxShadow: '0 0 3px rgba(0,0,0,0.2)',
-          pointerEvents: 'none',      // 클릭 이벤트 완전 차단
+          pointerEvents: 'none',
+          marginRight: '-8px',   // 오른쪽 끝으로 더 밀기
         }}
         aria-label="프로필 페이지로 이동"
       >
