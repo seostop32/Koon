@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import debounce from 'lodash/debounce';
 import ProfileIntroHeader from './ProfileIntroHeader';
+import VideoSlide from './VideoSlide'; // 경로에 맞게
 
 function useDebounce(callback, delay) {
   const timer = useRef(null);
@@ -196,20 +197,63 @@ console.log('[ProfileIntro] photos:========', photos);
           });
 
           const isVideo = url.toLowerCase().endsWith('.mp4');
+          // const videoRef = useRef(null);
+          // const [isPlaying, setIsPlaying] = useState(false);
 
+          // const handlePlay = () => {
+          //   videoRef.current?.play();
+          //   setIsPlaying(true);
+          // };
           return (
+            // <div key={idx} style={{ ...styles.slide, position: 'relative' }}>
+            //   {isVideo ? (
+            //   <>
+            //     <video
+            //       ref={videoRef}
+            //       src={url}
+            //       playsInline
+            //       style={{
+            //         ...styles.image,
+            //         filter: isBlurred ? 'blur(8px)' : 'none',
+            //         transition: 'filter 0.3s ease',
+            //       }}
+            //     />
+            //     {!isPlaying && (
+            //       <button
+            //         onClick={handlePlay}
+            //         style={{
+            //           position: 'absolute',
+            //           bottom: '10px',
+            //           right: '10px',
+            //           background: 'rgba(0,0,0,0.6)',
+            //           color: '#fff',
+            //           border: 'none',
+            //           borderRadius: '50%',
+            //           width: '36px',
+            //           height: '36px',
+            //           fontSize: '16px',
+            //           cursor: 'pointer',
+            //         }}
+            //       >
+            //         ▶
+            //       </button>
+            //     )}
+            //   </>                
+            //   ) : (
+            //     <img
+            //       src={url}
+            //       alt={`photo-${idx}`}
+            //       style={{
+            //         ...styles.image,
+            //         filter: isBlurred ? 'blur(8px)' : 'none',
+            //         transition: 'filter 0.3s ease',
+            //       }}
+            //     />
+            //   )}
+            // </div>
             <div key={idx} style={styles.slide}>
               {isVideo ? (
-                <video
-                  src={url}
-                  controls        // 사용자가 직접 재생하고 소리 조절
-                  playsInline
-                  style={{
-                    ...styles.image,
-                    filter: isBlurred ? 'blur(8px)' : 'none',
-                    transition: 'filter 0.3s ease',
-                  }}
-                />
+                <VideoSlide url={url} isBlurred={isBlurred} style={styles.image} />
               ) : (
                 <img
                   src={url}
@@ -221,7 +265,7 @@ console.log('[ProfileIntro] photos:========', photos);
                   }}
                 />
               )}
-            </div>
+            </div>            
           );
         })}
         </div>
