@@ -9,6 +9,8 @@ import OtherMessage from '../components/OtherMessage';
 import { useSupabaseClient, useUser } from '@supabase/auth-helpers-react';
 import ChatPageHeader from '../pages/ChatPageHeader';
 import NotificationSettings from '../pages/NotificationSettings';
+import { FaPaperPlane } from 'react-icons/fa'; // react-icons 설치되어 있어야 해
+
 
 function ChatPage() {
   const navigate = useNavigate();
@@ -21,37 +23,58 @@ function ChatPage() {
 
   const [loadingRecipient, setLoadingRecipient] = useState(true);
   const [loadingMessages, setLoadingMessages] = useState(true);
-  const endRef = useRef(null);
 
   const [currentUserNickname, setCurrentUserNickname] = useState('');
   const [newMessage, setNewMessage] = useState("");  // 👈 이 줄을 추가해야 함
   
-  async function uploadFile(file) {
+  const endRef = useRef(null);
+
+  useEffect(() => {
+    if (endRef.current) {
+      endRef.current.scrollIntoView({ behavior: 'smooth', block: 'end' });
+    }
+  }, [messages]);
+
+  async function uploadFile(file, options = {}) {
+    const { trigger = 'manual', onSuccess } = options;
+
+    if (!file) return null;
+
+    console.log(`[${trigger}] 파일 업로드 시작:`, file);
+
     const fileExt = file.name.split('.').pop();
-    const fileName = `${Date.now()}.${fileExt}`; // 고유 이름 생성
+    const fileName = `${Date.now()}.${fileExt}`;
     const filePath = `${fileName}`;
 
+    // ✅ Supabase 업로드
     const { data, error } = await supabase.storage
-      .from('profile-photos')  // 버킷 이름 바꿔야 해
+      .from('profile-photos') // ✅ 버킷 이름 바꾸고 싶으면 여기!
       .upload(filePath, file);
 
     if (error) {
-      console.error('파일 업로드 실패:', error);
+      console.error(`[${trigger}] 파일 업로드 실패:`, error);
       return null;
     }
 
-    // 파일 URL 얻기
+    // ✅ URL 가져오기
     const { publicURL, error: urlError } = supabase.storage
       .from('profile-photos')
       .getPublicUrl(filePath);
 
     if (urlError) {
-      console.error('URL 생성 실패:', urlError);
+      console.error(`[${trigger}] URL 생성 실패:`, urlError);
       return null;
     }
 
+    console.log(`[${trigger}] 업로드 완료: ${publicURL}`);
+
+    // ✅ 성공 시 후속 처리 콜백 실행
+    if (onSuccess) {
+      onSuccess(publicURL, file);
+    }
+
     return publicURL;
-  }
+  }  
 
   async function saveMessage({ sender_id, content, type, name }) {
     const { data, error } = await supabase
@@ -68,27 +91,6 @@ function ChatPage() {
     return data[0]; // 저장된 메시지 객체 리턴
   }
 
-  // async function handleSendFile(file) {
-  //   const fileUrl = await uploadFile(file);
-  //   if (!fileUrl) return;
-
-  //   // 파일 타입 정하기 (image, video, file 등)
-  //   let type = 'file';
-  //   if (file.type.startsWith('image/')) type = 'image';
-  //   else if (file.type.startsWith('video/')) type = 'video';
-
-  //   const savedMessage = await saveMessage({
-  //     sender_id: currentUserId,
-  //     content: fileUrl,
-  //     type,
-  //     name: file.name,
-  //   });
-
-  //   if (savedMessage) {
-  //     setMessages(prev => [...prev, savedMessage]); // 메시지 목록에 추가
-  //     setIsFileModalOpen(false); // 모달 닫기
-  //   }
-  // }
 
   const [selectedMedia, setSelectedMedia] = useState(null);
   const [isFileModalOpen, setIsFileModalOpen] = useState(false);
@@ -109,6 +111,7 @@ function ChatPage() {
     }
   };
 
+  // 모달 내 업로드 버튼 누르면 실행되는 함수
   const handleSendFile = async () => {
     if (!selectedFile) return;
 
@@ -172,6 +175,29 @@ function ChatPage() {
   const handleCloseModal = () => {
     setIsFileModalOpen(false); // 모달 닫기
   };
+
+    // 드롭 이벤트 핸들러
+  const handleDrop = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const files = e.dataTransfer.files;
+    if (files.length > 0) {
+      handleDroppedFiles(files);
+    }
+  };
+
+  const handleDragOver = (e) => {
+    e.preventDefault(); // 이거 안 하면 드롭이 안 돼
+  };
+
+  // 드래그 이벤트 핸들러
+  const handleDroppedFiles = (files) => {
+    if (files.length === 0) return;
+    setSelectedFile(files[0]); // 첫 파일 선택
+    setIsFileModalOpen(true);  // 모달 열기
+  };
+
+
 
 
 
@@ -479,7 +505,8 @@ function ChatPage() {
   const handleKeyDown = (e) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
-      handleSendMessage();
+      handleSendMessage({ type: 'text', content: newMessage });
+      // handleSendMessage();
     }
   };
 
@@ -661,41 +688,44 @@ function ChatPage() {
           onChange={handleFileChange}
         />
 
-        <textarea
-          style={{
-            width: '100%', // 말풍선 maxWidth와 동일하게!
-            maxWidth: '100%', // 말풍선 최대 너비와 비슷하게
-            padding: '8px',
-            fontSize: '14px',
-            borderRadius: '4px',
-            border: '1px solid #ccc',
-            resize: 'none',
-            boxSizing: 'border-box',
-          }}
-          value={newMessage}
-          onChange={(e) => setNewMessage(e.target.value)} // ✅ 이 부분 고침
-        />
-
-        {/* <textarea
-          placeholder="메시지를 입력하세요"
-          value={newMessage}
-          onChange={(e) => setNewMessage(e.target.value)} // ✅ 이 부분 고침
-          onKeyDown={handleKeyDown}
-          rows={2}
-          style={{
-            ...styles.textarea,
-            width: 'calc(100% - 20px)',
-            paddingLeft: '10px',
-            paddingRight: '10px',
-            fontSize: '14px',
-            letterSpacing: '0.5px',
-            lineHeight: '1.6',
-            resize: 'none',
-            marginBottom: '8px',
-            borderRadius: '8px',
-            backgroundColor: '#f1f1f1',
-          }}
-        /> */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', width: '100%' }}>
+          <textarea
+            placeholder="메시지를 입력하세요"
+            value={newMessage}
+            onChange={(e) => setNewMessage(e.target.value)}
+            onKeyDown={handleKeyDown}
+            rows={2}
+            style={{
+              flexGrow: 1,
+              minWidth: 0,         // 이게 중요해! 없으면 너무 작아짐
+              paddingLeft: '10px',
+              paddingRight: '10px',
+              fontSize: '14px',
+              letterSpacing: '0.5px',
+              lineHeight: '1.6',
+              resize: 'none',
+              marginBottom: '8px',
+              borderRadius: '8px',
+              backgroundColor: '#f1f1f1',
+              border: '1px solid #ccc',
+            }}
+          />
+          <button
+            onClick={handleSendMessage}
+            style={{
+              background: 'none',
+              border: 'none',
+              cursor: 'pointer',
+              padding: '8px',
+              fontSize: '20px',
+              color: '#333',
+              marginBottom: '8px',
+              flexShrink: 0,       // 버튼 크기 줄어드는거 방지
+            }}
+          >
+            <FaPaperPlane />
+          </button>
+        </div>        
       </div>
 
       {isFileModalOpen && (
@@ -811,7 +841,10 @@ const styles = {
     flexDirection: 'column',
     padding: 12,
     gap: 8,
-  },  
+    height: '500px',         // 예: 적당한 고정 높이 지정 (원하는 크기로 조절)
+    overflowY: 'auto',       // 세로 스크롤 가능하도록 설정
+    flexGrow: 1,
+  },
   dateHeader: {
     margin: '20px auto 10px',
     display: 'flex',
