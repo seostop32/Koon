@@ -523,118 +523,133 @@ function ChatPage() {
         <ChatPageHeader otherUserId={otherUserId} />
       </div>      
     
-
       <div style={styles.messagesArea}>
         {messages.map((msg, index) => {
           console.log('🔍 메시지 타입:', msg.type, '내용:', msg.content);
+
           const isMine = msg.sender_id === currentUserId;
 
+          // 🕒 시간 포맷 함수 (서울 시간 기준)
           const formatTime = (timestamp) => {
             if (!timestamp) return '';
             const date = new Date(timestamp);
-            //const options = { hour: 'numeric', minute: 'numeric' };
             const options = { hour: 'numeric', minute: 'numeric', timeZone: 'Asia/Seoul' };
             return date.toLocaleTimeString('ko-KR', options);
           };
 
+          // 📅 날짜 헤더 표시 여부 판단
           const msgDate = msg.created_at ? new Date(msg.created_at) : null;
-          const prevMsgDate = index > 0 && messages[index - 1].created_at ? new Date(messages[index - 1].created_at) : null;
+          const prevMsgDate =
+            index > 0 && messages[index - 1].created_at
+              ? new Date(messages[index - 1].created_at)
+              : null;
+
           const shouldShowDateHeader =
-            index === 0 || !prevMsgDate || (msgDate && msgDate.toDateString() !== prevMsgDate.toDateString());
+            index === 0 ||
+            !prevMsgDate ||
+            (msgDate && msgDate.toDateString() !== prevMsgDate.toDateString());
 
           return (
-            <div key={msg.id || `msg-${index}`}>
-            {/* <React.Fragment key={msg.id}> */}
-              {shouldShowDateHeader && msgDate && (
-                <div style={styles.dateHeader}>
-                  <span style={styles.calendarIcon}>📅</span>
-                  {formatDateHeader(msgDate)}
-                </div>
-              )}
+            <div
+              key={msg.id || `msg-${index}`}
+              style={{
+                display: 'flex',
+                flexDirection: isMine ? 'row-reverse' : 'row',
+                alignItems: 'flex-end',
+                marginBottom: '8px',
+                // maxWidth: '100%',
+                width: '100%', // maxWidth 대신 width 100%로 부모 너비 꽉 채우기
+                gap: '8px',
+              }}
+            >
+              {/* 텍스트, 파일 메시지는 말풍선 스타일 적용 */}
+              {(msg.type === 'text' || msg.type === 'file' || !msg.type) && (
                 <div
                   style={{
-                    ...styles.message,
-                    marginLeft: isMine ? 'auto' : 0,
-                    backgroundColor: isMine ? '#d1f7c4' : '#eee',                    
-                    // alignSelf: isMine ? 'flex-end' : 'flex-start',
-                    // backgroundColor: isMine ? '#d1f7c4' : '#eee',
-                    position: 'relative',  // 읽음 표시 위치를 위해 추가
+                    backgroundColor: isMine ? '#d1f7c4' : '#eee',
+                    borderRadius: '8px',
+                    padding: '8px 12px',
+                    wordBreak: 'break-word',
+                    cursor: 'default',
+                    maxWidth: '100%',
                   }}
                 >
-                {/* ✅ '읽음' 텍스트를 시간 앞쪽에 작게 표시 */}
+                  {msg.type === 'file' && (
+                    <div>
+                      📎{' '}
+                      <span
+                        onClick={() => handleDownload(msg.content, msg.name)}
+                        style={{ color: '#0077cc', cursor: 'pointer', textDecoration: 'underline' }}
+                      >
+                        {msg.name || '파일 다운로드'}
+                      </span>
+                    </div>
+                  )}
+                  {(msg.type === 'text' || !msg.type) && <span>{msg.content}</span>}
+                </div>
+              )}
+
+              {/* 사진 메시지 */}
+              {msg.type === 'image' && (
+                <img
+                  src={msg.content}
+                  alt={msg.name || 'image'}
+                  style={{
+                    maxWidth: '150px',
+                    borderRadius: '8px',
+                    cursor: 'pointer',
+                    objectFit: 'cover',
+                    display: 'block',
+                  }}
+                  onClick={() => setSelectedMedia({ type: 'image', url: msg.content })}
+                />
+              )}
+
+              {/* 동영상 메시지 */}
+              {msg.type === 'video' && (
+                <video
+                  src={msg.content}
+                  controls
+                  style={{
+                    maxWidth: '200px',
+                    borderRadius: '8px',
+                    cursor: 'pointer',
+                    display: 'block',
+                  }}
+                  onClick={() => setSelectedMedia({ type: 'video', url: msg.content })}
+                />
+              )}
+
+              {/* 시간 + 읽음 표시 */}
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  color: '#666',
+                  fontSize: 12,
+                  gap: '4px',
+                  minWidth: '40px',
+                  justifyContent: 'flex-end',
+                  flexDirection: 'row',
+                }}
+              >
                 {isMine && msg.read_at && (
-                  <span style={{
-                    fontSize: 10,
-                    color: '#999', // ✔ 깔끔한 회색톤
-                    marginRight: 4,
-                  }}>
-                    읽음
-                  </span>
-                )}           
-                <strong style={{ fontWeight: 400, fontSize: '75%', color: '#666', marginRight: 8 }}>
-                  {formatTime(msg.created_at)}
-                </strong>
-
-                {/* 🔽 타입에 따라 내용 다르게 렌더링 */}
-                {msg.type === 'image' && (
-                  <img
-                    src={msg.content}
-                    alt={msg.name || 'image'}
-                    style={{ maxWidth: '150px', borderRadius: 8, marginTop: 6, cursor: 'pointer' }}
-                    onClick={() => setSelectedMedia({ type: 'image', url: msg.content })}
-                  />
+                  <span style={{ fontSize: 10, color: '#999' }}>읽음</span>
                 )}
-
-                {msg.type === 'video' && (
-                  <video
-                    src={msg.content}
-                    controls
-                    style={{ maxWidth: '200px', borderRadius: 8, marginTop: 6, cursor: 'pointer' }}
-                    onClick={() => setSelectedMedia({ type: 'video', url: msg.content })}
-                  />
-                )}
-
-                {msg.type === 'file' && (
-                  <div style={{ marginTop: 6 }}>
-                    📎 <span
-                      onClick={() => handleDownload(msg.content, msg.name)}
-                      style={{ color: '#0077cc', cursor: 'pointer', textDecoration: 'underline' }}
-                    >
-                      {msg.name || '파일 다운로드'}
-                    </span>
-                  </div>
-                )}
-
-                {(!msg.type || msg.type === 'text') && (
-                  <span>{msg.content}</span>
-                )}
-                {selectedMedia && (
-                  <div style={styles.fullscreenOverlay} onClick={() => setSelectedMedia(null)}>
-                    <div style={styles.closeButton} onClick={() => setSelectedMedia(null)}>✖</div>
-
-                    {selectedMedia.type === 'image' && (
-                      <img src={selectedMedia.url} style={styles.fullscreenImage} alt="전체 이미지" />
-                    )}
-                    {selectedMedia.type === 'video' && (
-                      <video src={selectedMedia.url} controls autoPlay style={styles.fullscreenVideo} />
-                    )}
-                  </div>
-                )}
-                {/* {msg.content} */}
-               </div>
-            {/* </React.Fragment> */}
-            </div>
-
+                <span>{formatTime(msg.created_at)}</span>
+              </div>
+            </div>                   
           );
         })}
+        {/* 📍 스크롤 하단 고정용 ref */}
         <div ref={endRef} />
-      </div>
+      </div>      
 
       <div style={{ ...styles.inputContainer, display: 'flex', alignItems: 'center' }}>
         {/* ✅ label 대신 div 사용 */}
         <div
           onClick={handlePlusClick}
-          style={{ ...styles.plusButton, marginRight: '8px' }}
+          style={{ ...styles.plusButton, marginLeft: '4px', marginRight: '4px' }}
         >
           +
         </div>
@@ -647,18 +662,40 @@ function ChatPage() {
         />
 
         <textarea
+          style={{
+            width: '100%', // 말풍선 maxWidth와 동일하게!
+            maxWidth: '100%', // 말풍선 최대 너비와 비슷하게
+            padding: '8px',
+            fontSize: '14px',
+            borderRadius: '4px',
+            border: '1px solid #ccc',
+            resize: 'none',
+            boxSizing: 'border-box',
+          }}
+          value={newMessage}
+          onChange={(e) => setNewMessage(e.target.value)} // ✅ 이 부분 고침
+        />
+
+        {/* <textarea
           placeholder="메시지를 입력하세요"
           value={newMessage}
-          onChange={(e) => setNewMessage(e.target.value)}
+          onChange={(e) => setNewMessage(e.target.value)} // ✅ 이 부분 고침
           onKeyDown={handleKeyDown}
           rows={2}
-            style={{
+          style={{
             ...styles.textarea,
-            letterSpacing: '0.5px', // 🔹 자간 조절 (적당한 간격)
-            lineHeight: '1.6',      // 🔹 줄 간격도 살짝 주면 보기 좋아
-            fontSize: '14px',       // 🔹 가독성 좋은 폰트 사이즈
+            width: 'calc(100% - 20px)',
+            paddingLeft: '10px',
+            paddingRight: '10px',
+            fontSize: '14px',
+            letterSpacing: '0.5px',
+            lineHeight: '1.6',
+            resize: 'none',
+            marginBottom: '8px',
+            borderRadius: '8px',
+            backgroundColor: '#f1f1f1',
           }}
-        />
+        /> */}
       </div>
 
       {isFileModalOpen && (

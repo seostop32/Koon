@@ -10,7 +10,6 @@ import { useSupabaseClient, useUser } from '@supabase/auth-helpers-react';
 import ChatPageHeader from '../pages/ChatPageHeader';
 import NotificationSettings from '../pages/NotificationSettings';
 
-  
 function ChatPage() {
   const navigate = useNavigate();
   const { userId: otherUserId } = useParams();  // 상대방 ID를 otherUserId로 변경
@@ -19,7 +18,7 @@ function ChatPage() {
   const [currentUserId, setCurrentUserId] = useState(null);
   const [recipient, setRecipient] = useState(null);
   const [messages, setMessages] = useState([]);
-  const [message, setMessage] = useState('');
+
   const [loadingRecipient, setLoadingRecipient] = useState(true);
   const [loadingMessages, setLoadingMessages] = useState(true);
   const endRef = useRef(null);
@@ -27,10 +26,154 @@ function ChatPage() {
   const [currentUserNickname, setCurrentUserNickname] = useState('');
   const [newMessage, setNewMessage] = useState("");  // 👈 이 줄을 추가해야 함
   
-  //const { data: { user } } = useSupabaseClient().auth.getUser(); // 최신 방식에 따라 다름
-  // const selectedUser = {
-  //   id: selectedUser.id, // 실제로는 라우터나 props로 받아올 것
-  // };
+  async function uploadFile(file) {
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${Date.now()}.${fileExt}`; // 고유 이름 생성
+    const filePath = `${fileName}`;
+
+    const { data, error } = await supabase.storage
+      .from('profile-photos')  // 버킷 이름 바꿔야 해
+      .upload(filePath, file);
+
+    if (error) {
+      console.error('파일 업로드 실패:', error);
+      return null;
+    }
+
+    // 파일 URL 얻기
+    const { publicURL, error: urlError } = supabase.storage
+      .from('profile-photos')
+      .getPublicUrl(filePath);
+
+    if (urlError) {
+      console.error('URL 생성 실패:', urlError);
+      return null;
+    }
+
+    return publicURL;
+  }
+
+  async function saveMessage({ sender_id, content, type, name }) {
+    const { data, error } = await supabase
+      .from('messages')
+      .insert([
+        { sender_id, content, type, name }
+      ]);
+
+    if (error) {
+      console.error('메시지 저장 실패:', error);
+      return null;
+    }
+
+    return data[0]; // 저장된 메시지 객체 리턴
+  }
+
+  // async function handleSendFile(file) {
+  //   const fileUrl = await uploadFile(file);
+  //   if (!fileUrl) return;
+
+  //   // 파일 타입 정하기 (image, video, file 등)
+  //   let type = 'file';
+  //   if (file.type.startsWith('image/')) type = 'image';
+  //   else if (file.type.startsWith('video/')) type = 'video';
+
+  //   const savedMessage = await saveMessage({
+  //     sender_id: currentUserId,
+  //     content: fileUrl,
+  //     type,
+  //     name: file.name,
+  //   });
+
+  //   if (savedMessage) {
+  //     setMessages(prev => [...prev, savedMessage]); // 메시지 목록에 추가
+  //     setIsFileModalOpen(false); // 모달 닫기
+  //   }
+  // }
+
+  const [selectedMedia, setSelectedMedia] = useState(null);
+  const [isFileModalOpen, setIsFileModalOpen] = useState(false);
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [message, setMessage] = useState('');
+
+  const fileInputRef = useRef(null);
+
+  const handlePlusClick = () => {
+    fileInputRef.current?.click(); // 직접 파일 선택창 열기
+  };
+
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setSelectedFile(file);
+      setIsFileModalOpen(true); // 파일이 선택되면 모달 열기
+    }
+  };
+
+  const handleSendFile = async () => {
+    if (!selectedFile) return;
+
+    const fileType = selectedFile.type;
+
+    // 1. 먼저 Supabase Storage에 업로드
+    const fileExt = selectedFile.name.split('.').pop();
+    const fileName = `${Date.now()}.${fileExt}`;
+    const filePath = fileName;
+
+    const { data: uploadData, error: uploadError } = await supabase.storage
+      .from('profile-photos') // ← 버킷 이름
+      .upload(filePath, selectedFile);
+
+    if (uploadError) {
+      console.error('파일 업로드 실패:', uploadError);
+      return;
+    }
+
+    // 2. URL 가져오기
+    const { data: publicData, error: urlError } = supabase.storage
+      .from('profile-photos')
+      .getPublicUrl(filePath);
+
+    if (urlError || !publicData?.publicUrl) {
+      console.error('공개 URL 실패:', urlError);
+      return;
+    }
+
+    const fileURL = publicData.publicUrl;
+
+    // 3. 타입 설정
+    let type = 'file';
+    if (fileType.startsWith('image/')) type = 'image';
+    else if (fileType.startsWith('video/')) type = 'video';
+
+    // 4. 메시지 DB에 저장
+    const { data: messageData, error: messageError } = await supabase
+      .from('messages')
+      .insert([
+        {
+          sender_id: currentUserId, // 로그인 유저 아이디
+          recipient_id: otherUserId,   // 이 부분 추가해줘야 할 것 같아
+          content: fileURL,
+          type,
+          name: selectedFile.name,
+        }
+      ]);
+
+    if (messageError) {
+      console.error('메시지 저장 실패:', messageError);
+      return;
+    }
+
+    // 5. 화면에 반영
+    setMessages(prev => [...(prev || []), ...(messageData?.[0] ? [messageData[0]] : [])]);
+    setSelectedFile(null);
+    setIsFileModalOpen(false);
+  };
+
+  const handleCloseModal = () => {
+    setIsFileModalOpen(false); // 모달 닫기
+  };
+
+
 
   useEffect(() => {
     const getCurrentUser = async () => {
@@ -98,56 +241,48 @@ function ChatPage() {
   }, [otherUserId]);
 
   const handleSendMessage = async () => {
-    const {
-      data: { user },
-      error,
-    } = await supabase.auth.getUser();    
     if (!newMessage.trim()) return;
 
-    // 1. 메시지 삽입
-    const { error: msgError } = await supabase.from("messages").insert([
-      {
-        sender_id: user.id,
-        recipient_id: otherUserId,
-        content: newMessage,
-      },
-    ]);
+    console.log('🔹 메시지 전송 및 코인 차감 실행:', currentUserId, otherUserId);
 
-    if (msgError) {
-      console.error("메시지 전송 오류:", msgError.message);
+    const { error } = await supabase.rpc('send_message_with_coin', {
+      p_sender_id: currentUserId,
+      p_recipient_id: otherUserId,
+      p_content: newMessage,
+      p_event_key: 'send_message',
+    });
+
+    if (error) {
+      console.error('메시지 전송 실패:', error.message);
+      alert(`메시지 전송 중 문제가 발생했습니다. ${error.message}`);
       return;
     }
 
-    // 2. 알림 시간 업데이트 or 생성
-    const { error: notifError } = await supabase.rpc("upsert_notification", {
-      p_sender_id: user.id,
-      p_receiver_id: otherUserId,
-      p_type: "message", // 또는 'chat'
+    console.log('✅ 메시지 전송 성공');
+
+    setNewMessage(''); // 입력창 초기화
+    scrollToBottom();
+
+    // 메시지 알림 생성
+    await supabase.from('notifications').insert({
+      user_id: otherUserId,
+      sender_id: currentUserId,
+      type: 'message',
+      content: `${currentUserNickname}님이 당신에게 새 메시지를 보냈습니다.`,
     });
 
-    if (notifError) {
-      console.error("알림 갱신 오류:", notifError.message);
-    }
+    // noti_setting 업데이트
+    const { error: notiError } = await supabase
+      .from('notification_settings')
+      .update({ target_user_id: currentUserId }) // 보내는 사람 아이디
+      .eq('user_id', otherUserId);              // 받는 사람 아이디
 
-    setNewMessage(""); // 입력창 초기화
+    if (notiError) {
+      console.error('noti_setting 업데이트 실패:', notiError.message);
+    }
   };  
 
-  // useEffect(() => {
-  //   const getCurrentUser = async () => {
-  //     const {
-  //       data: { user },
-  //       error,
-  //     } = await supabase.auth.getUser();
 
-  //     if (error) {
-  //       console.error('유저 정보 가져오기 실패:', error);
-  //     } else {
-  //       setCurrentUserId(user.id);
-  //     }
-  //   };
-
-  //   getCurrentUser();
-  // }, []);
 
   useEffect(() => {
     if (!currentUserId || !otherUserId) return;
@@ -161,7 +296,7 @@ function ChatPage() {
         p_user2: otherUserId,        
       });
 
-      
+      console.log('messages 배열:', messages);
 
       if (messages) {
         console.log("✅ 메시지 개수:", messages.length);
@@ -324,10 +459,27 @@ function ChatPage() {
     }, 50); // 약간의 지연
   };
 
+  const handleDownload = async (url, fileName) => {
+    try {
+      const response = await fetch(url);
+      const blob = await response.blob();
+      const blobUrl = window.URL.createObjectURL(blob);
+
+      const a = document.createElement('a');
+      a.href = blobUrl;
+      a.download = fileName;
+      a.click();
+
+      window.URL.revokeObjectURL(blobUrl);
+    } catch (error) {
+      console.error('다운로드 실패:', error);
+    }
+  };
+
   const handleKeyDown = (e) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
-      handleSend();
+      handleSendMessage();
     }
   };
 
@@ -370,99 +522,244 @@ function ChatPage() {
         {/* <ChatPageHeader recipient={recipient} /> */}
         <ChatPageHeader otherUserId={otherUserId} />
       </div>      
-      {/* <div style={styles.header}>
-        <img
-          src={recipient.avatar_url || 'https://placekitten.com/100/100'}
-          alt="상대 아바타"
-          style={styles.avatar}
-          onError={(e) => {
-            e.currentTarget.src = 'https://placekitten.com/100/100';
-          }}
-        />
-        <div>
-          <strong style={{ color: '#ff7f50' }}>{recipient.nickname}</strong>
-          <div style={styles.meta}>
-            {recipient.age ? `${recipient.age}세` : ''} {recipient.location ? `| ${recipient.location}` : ''} {recipient.job_title ? `| ${recipient.job_title}` : ''}
-          </div>
-        </div>
-      </div> */}
-
-      {/* 알림 설정 컴포넌트 추가 */}
-      {/* <NotificationSettings targetUserId={otherUserId} />       */}
-
+    
       <div style={styles.messagesArea}>
         {messages.map((msg, index) => {
+          console.log('🔍 메시지 타입:', msg.type, '내용:', msg.content);
+
           const isMine = msg.sender_id === currentUserId;
 
+          // 🕒 시간 포맷 함수 (서울 시간 기준)
           const formatTime = (timestamp) => {
             if (!timestamp) return '';
             const date = new Date(timestamp);
-            //const options = { hour: 'numeric', minute: 'numeric' };
             const options = { hour: 'numeric', minute: 'numeric', timeZone: 'Asia/Seoul' };
             return date.toLocaleTimeString('ko-KR', options);
           };
 
+          // 📅 날짜 헤더 표시 여부 판단
           const msgDate = msg.created_at ? new Date(msg.created_at) : null;
-          const prevMsgDate = index > 0 && messages[index - 1].created_at ? new Date(messages[index - 1].created_at) : null;
+          const prevMsgDate =
+            index > 0 && messages[index - 1].created_at
+              ? new Date(messages[index - 1].created_at)
+              : null;
+
           const shouldShowDateHeader =
-            index === 0 || !prevMsgDate || (msgDate && msgDate.toDateString() !== prevMsgDate.toDateString());
+            index === 0 ||
+            !prevMsgDate ||
+            (msgDate && msgDate.toDateString() !== prevMsgDate.toDateString());
 
           return (
-            <React.Fragment key={msg.id}>
-              {shouldShowDateHeader && msgDate && (
-                <div style={styles.dateHeader}>
-                  <span style={styles.calendarIcon}>📅</span>
-                  {formatDateHeader(msgDate)}
-                </div>
-              )}
+            <div key={msg.id || `msg-${index}`} style={{ display: 'flex', flexDirection: isMine ? 'row-reverse' : 'row', alignItems: 'flex-end', marginBottom: '8px' }}>
+              {/* 메시지 말풍선 */}
+              <div
+                style={{
+                  maxWidth: '50%',
+                  marginBottom: '8px',
+                  display: 'flex',
+                  flexDirection: isMine ? 'row-reverse' : 'row',
+                  alignItems: 'flex-end',
+                  gap: '8px',
+                }}
+                key={msg.id || `msg-${index}`}
+              >
+                {/* 메시지 내용 부분 */}
+                {msg.type === 'image' ? (
+                  // 이미지: 말풍선 없이 바로 이미지 출력
+                  <img
+                    src={msg.content}
+                    alt={msg.name || 'image'}
+                    style={{
+                      maxWidth: '150px',
+                      borderRadius: '8px', // 둥근 모서리만 살짝 줘서 깔끔하게
+                      cursor: 'pointer',
+                      objectFit: 'cover',
+                      display: 'block',
+                    }}
+                    onClick={() => setSelectedMedia({ type: 'image', url: msg.content })}
+                  />
+                ) : msg.type === 'video' ? (
+                  // 비디오: 말풍선 없이 바로 비디오 출력
+                  <video
+                    src={msg.content}
+                    controls
+                    style={{
+                      maxWidth: '200px',
+                      borderRadius: '8px',
+                      cursor: 'pointer',
+                      display: 'block',
+                    }}
+                    onClick={() => setSelectedMedia({ type: 'video', url: msg.content })}
+                  />
+                ) : (
+                  // 그 외 텍스트, 파일 등은 말풍선 안에 렌더링
+                  <div
+                    style={{
+                      backgroundColor: isMine ? '#d1f7c4' : '#eee',
+                      borderRadius: '8px',
+                      padding: '8px 12px',
+                      wordBreak: 'break-word',
+                      cursor: 'default',
+                      display: 'inline-block',
+                    }}
+                  >
+                    {msg.type === 'file' && (
+                      <div>
+                        📎{' '}
+                        <span
+                          onClick={() => handleDownload(msg.content, msg.name)}
+                          style={{ color: '#0077cc', cursor: 'pointer', textDecoration: 'underline' }}
+                        >
+                          {msg.name || '파일 다운로드'}
+                        </span>
+                      </div>
+                    )}
+                    {(!msg.type || msg.type === 'text') && <span>{msg.content}</span>}
+                  </div>
+                )}
+
+                {/* 시간과 읽음 표시 */}
                 <div
                   style={{
-                    ...styles.message,
-                    alignSelf: isMine ? 'flex-end' : 'flex-start',
-                    backgroundColor: isMine ? '#d1f7c4' : '#eee',
-                    position: 'relative',  // 읽음 표시 위치를 위해 추가
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: isMine ? 'flex-end' : 'flex-start',
+                    fontSize: 12,
+                    color: '#666',
+                    minWidth: '40px',
                   }}
                 >
-                {/* ✅ '읽음' 텍스트를 시간 앞쪽에 작게 표시 */}
-                {isMine && msg.read_at && (
-                  <span style={{
-                    fontSize: 10,
-                    color: '#999', // ✔ 깔끔한 회색톤
-                    marginRight: 4,
-                  }}>
-                    읽음
-                  </span>
-                )}           
-                <strong style={{ fontWeight: 400, fontSize: '75%', color: '#666', marginRight: 8 }}>
-                  {formatTime(msg.created_at)}
-                  {/* {msg.created_at} */}
-                </strong>
-                {msg.content}
-               </div>
-            </React.Fragment>
+                  {isMine && msg.read_at && <span style={{ fontSize: 10, color: '#999', marginBottom: 2 }}>읽음</span>}
+                  <span>{formatTime(msg.created_at)}</span>
+                </div>
+              </div>              
+            </div>            
           );
         })}
+        {/* 📍 스크롤 하단 고정용 ref */}
         <div ref={endRef} />
-      </div>
+      </div>      
 
-      <div style={styles.inputArea}>
+      <div style={{ ...styles.inputContainer, display: 'flex', alignItems: 'center' }}>
+        {/* ✅ label 대신 div 사용 */}
+        <div
+          onClick={handlePlusClick}
+          style={{ ...styles.plusButton, marginLeft: '4px', marginRight: '4px' }}
+        >
+          +
+        </div>
+
+        <input
+          type="file"
+          ref={fileInputRef}
+          style={{ display: 'none' }}
+          onChange={handleFileChange}
+        />
+
         <textarea
           placeholder="메시지를 입력하세요"
-          value={message}
-          onChange={(e) => setMessage(e.target.value)}
+          value={newMessage}
+          onChange={(e) => setNewMessage(e.target.value)} // ✅ 이 부분 고침
           onKeyDown={handleKeyDown}
           rows={2}
-          style={styles.textarea}
+          style={{
+            ...styles.textarea,
+            width: 'calc(100% - 20px)',
+            paddingLeft: '10px',
+            paddingRight: '10px',
+            fontSize: '14px',
+            letterSpacing: '0.5px',
+            lineHeight: '1.6',
+            resize: 'none',
+            marginBottom: '8px',
+            borderRadius: '8px',
+            backgroundColor: '#f1f1f1',
+          }}
         />
-        <button onClick={handleSend} style={styles.sendButton}>
-          보내기
-        </button>
       </div>
-    </div>
+
+      {isFileModalOpen && (
+        <div style={styles.modalOverlay}>
+          <div style={styles.modalContent}>
+            <p>📄 선택한 파일: <strong>{selectedFile?.name}</strong></p>
+            <div style={{ marginTop: 12, display: 'flex', justifyContent: 'space-between' }}>
+              <button onClick={handleSendFile} style={styles.modalButton}>파일 전송</button>
+              <button onClick={handleCloseModal} style={styles.cancelButton}>취소</button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>        
+        
+
   );
 }
 
+const modalStyles = {
+  backdrop: {
+    position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+    backgroundColor: 'rgba(0,0,0,0.3)',
+    display: 'flex', justifyContent: 'center', alignItems: 'center',
+  },
+  modal: {
+    backgroundColor: 'white',
+    padding: 20,
+    borderRadius: 8,
+    boxShadow: '0 2px 10px rgba(0,0,0,0.2)',
+    minWidth: 300,
+  }
+};
 const styles = {
+  inputContainer: {
+    display: 'flex',
+    alignItems: 'center',
+  },
+  plusButton: {
+    fontSize: '24px',
+    cursor: 'pointer',
+  },
+  textarea: {
+    width: '300px',
+    height: '50px',
+    padding: '10px',
+    borderRadius: '5px',
+  },
+  modalOverlay: {
+    position: 'fixed',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalContent: {
+    backgroundColor: 'white',
+    padding: '20px',
+    borderRadius: '8px',
+    textAlign: 'center',
+    width: '80%', // 모달의 너비 조정 (좌우 꽉 찬 문제 해결)
+    maxWidth: '400px', // 최대 너비 설정
+  },
+  modalButton: {
+    backgroundColor: '#4CAF50',
+    color: 'white',
+    border: 'none',
+    padding: '10px 20px',
+    borderRadius: '5px',
+    cursor: 'pointer',
+  },
+  cancelButton: {
+    backgroundColor: '#f44336',
+    color: 'white',
+    border: 'none',
+    padding: '10px 20px',
+    borderRadius: '5px',
+    cursor: 'pointer',
+  },
+
   container: {
     height: '100vh',
     display: 'flex',
@@ -490,12 +787,11 @@ const styles = {
     color: '#888',
   },
   messagesArea: {
-    flex: 1,
-    overflowY: 'auto',
-    padding: 10,
     display: 'flex',
     flexDirection: 'column',
-  },
+    padding: 12,
+    gap: 8,
+  },  
   dateHeader: {
     margin: '20px auto 10px',
     display: 'flex',
@@ -528,19 +824,6 @@ const styles = {
     gap: 8,
     alignItems: 'center',  // 세로 가운데 정렬
   },
-  textarea: {
-    flex: 1,               // 가로 공간 최대한 차지
-    resize: 'none',
-    fontSize: '16px',
-    fontFamily: 'Noto Sans KR, sans-serif',
-    letterSpacing: 'normal',
-    wordSpacing: 'normal',
-    whiteSpace: 'normal',
-    lineHeight: '1.4',
-    padding: '8px',
-    boxSizing: 'border-box',
-    minHeight: '50px',     // 높이 고정 또는 최소값 지정
-  },
   sendButton: {
     padding: '10px 20px',  // 버튼에 적당한 상하 패딩 추가
     backgroundColor: '#5ca05c',
@@ -551,6 +834,34 @@ const styles = {
     whiteSpace: 'nowrap',  // 버튼 텍스트 줄 바꿈 방지
     height: '50px',        // textarea와 높이 맞추기
   },
+  fullscreenOverlay: {
+    position: 'fixed',
+    top: 0, left: 0, right: 0, bottom: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.85)',
+    zIndex: 9999,
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  closeButton: {
+    position: 'absolute',
+    top: 16,
+    right: 20,
+    fontSize: 28,
+    color: '#fff',
+    cursor: 'pointer',
+    zIndex: 10000,
+  },
+  fullscreenImage: {
+    maxWidth: '90%',
+    maxHeight: '90%',
+    objectFit: 'contain',
+  },
+  fullscreenVideo: {
+    maxWidth: '90%',
+    maxHeight: '90%',
+    borderRadius: 8,
+  }  
 };
 
 export default ChatPage;
