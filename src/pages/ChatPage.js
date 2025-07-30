@@ -719,11 +719,11 @@ function ChatPage() {
               style={{
                 flexGrow: 1,
                 minWidth: 0,
-                paddingLeft: '10px',
-                paddingRight: '10px',
+                paddingLeft: '8px',
+                paddingRight: '8px',
                 fontSize: '14px',
-                letterSpacing: '0.5px',
-                lineHeight: '1.6',
+                letterSpacing: '0px',       // ✅ 글자 간격 없애기
+                lineHeight: '1.4',          // ✅ 줄 간격 살짝 줄이기
                 resize: 'none',
                 marginBottom: '8px',
                 borderRadius: '8px',
