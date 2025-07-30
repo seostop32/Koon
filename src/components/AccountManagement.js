@@ -11,6 +11,57 @@ function AccountManagement({ onLogout }) {
   const [profile, setProfile] = useState(null);
   const [email, setEmail] = useState(null);
 
+  const [currentUserId, setCurrentUserId] = useState(null);
+  useEffect(() => {
+    const fetchUser = async () => {
+      const {
+        data: { user },
+        error,
+      } = await supabase.auth.getUser();
+
+      if (user) {
+        setCurrentUserId(user.id);
+      } else {
+        console.error('유저 정보 불러오기 실패:', error);
+      }
+    };
+
+    fetchUser();
+  }, []);  
+
+  //회원탈퇴
+  async function handleDeleteAccount(userId) {
+    const confirm = window.confirm('정말 탈퇴하시겠어요? 😢');
+
+    if (!confirm) return;
+
+    // Step 1: 프로필에서 is_deleted 처리
+    const { error: profileError } = await supabase
+      .from('profiles')
+      .update({ is_deleted: true })
+      .eq('id', userId);
+
+    if (profileError) {
+      alert('프로필 삭제 실패');
+      console.error(profileError);
+      return;
+    }
+
+    // Step 2: 로그아웃 처리
+    const { error: signOutError } = await supabase.auth.signOut();
+
+    if (signOutError) {
+      alert('로그아웃 실패');
+      console.error(signOutError);
+      return;
+    }
+
+    // Step 3: 홈 또는 로그인 페이지로 이동
+    // window.location.href = '/login'; // or navigate('/login');
+    window.location.href = '/auth'; // or navigate('/login');
+    
+  }  
+
   useEffect(() => {
     const fetchProfile = async () => {
       const { data: { user }, error: userError } = await supabase.auth.getUser();
@@ -26,7 +77,8 @@ function AccountManagement({ onLogout }) {
         .from('profiles')
         .select('*')
         .eq('id', user.id)
-        .single();
+        .is('is_deleted', false);
+        // .single();
 
       console.log('받아온 프로필 데이터:', data);
 
@@ -74,9 +126,7 @@ function AccountManagement({ onLogout }) {
         <div style={styles.buttonContainer}>
           <button
             style={styles.actionButton}
-            onClick={() => {
-              alert('회원탈퇴 기능은 나중에 구현할게요.');
-            }}
+            onClick={() => handleDeleteAccount(currentUserId)}
           >
             회원탈퇴
           </button>

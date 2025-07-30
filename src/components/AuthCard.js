@@ -51,14 +51,37 @@ function AuthCard({ mode: initialMode = 'login', onAuthSuccess = () => {} }) {
           setError('비밀번호를 입력해주세요.');
           return;
         }
-        const { error } = await supabase.auth.signInWithPassword({
+
+        const { data: signInData, error } = await supabase.auth.signInWithPassword({
           email: trimmedEmail,
           password: trimmedPassword,
         });
+                
+        // const { error } = await supabase.auth.signInWithPassword({
+        //   email: trimmedEmail,
+        //   password: trimmedPassword,
+        // });
         if (error) {
           setError(error.message);
           return;
         }
+
+        // 🔐 로그인 성공 후, is_deleted 여부 확인
+        const userId = signInData?.user?.id;
+        if (userId) {
+          const { data: profile, error: profileError } = await supabase
+            .from('profiles')
+            .select('is_deleted')
+            .eq('id', userId)
+            .single(); 
+
+          if (profileError || profile?.is_deleted) {
+            setError('이미 탈퇴한 계정입니다.');
+            await supabase.auth.signOut(); // 세션 제거
+            return;
+          }
+        }
+
         onAuthSuccess();
       }
 
