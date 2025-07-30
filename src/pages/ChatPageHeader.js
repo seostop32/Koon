@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { IoChevronBackSharp } from 'react-icons/io5';
 import { supabase } from '../supabaseClient';
 
-export default function ChatListPageHeader({ title = '채팅', otherUserId }) {
+export default function ChatPageHeader({ title = '채팅', otherUserId }) {
   const navigate = useNavigate();
   const [avatarUrl, setAvatarUrl] = useState('/default-avatar.png');
   const [loadingRecipient, setLoadingRecipient] = useState(true);

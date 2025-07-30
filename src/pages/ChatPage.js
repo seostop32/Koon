@@ -7,7 +7,7 @@ import Message from '../components/MyMessage';
 import MyMessage from '../components/MyMessage';
 import OtherMessage from '../components/OtherMessage';
 import { useSupabaseClient, useUser } from '@supabase/auth-helpers-react';
-import ChatPageHeader from '../pages/ChatPageHeader';
+import ChatPageHeader from './ChatPageHeader';
 import NotificationSettings from '../pages/NotificationSettings';
 import { FaPaperPlane } from 'react-icons/fa'; // react-icons 설치되어 있어야 해
 
@@ -544,6 +544,11 @@ function ChatPage() {
 
   return (
       <div style={styles.container}>
+        <div>
+          {/* <ChatPageHeader recipient={recipient} /> */}
+          <ChatPageHeader otherUserId={otherUserId} />
+        </div> 
+                
         <div style={styles.messagesArea}>
           {messages.map((msg, index) => {
             const isMine = msg.sender_id === currentUserId;
