@@ -543,206 +543,229 @@ function ChatPage() {
   }
 
   return (
-    
-    <div style={styles.container}>
-      <div>
-        {/* <ChatPageHeader recipient={recipient} /> */}
-        <ChatPageHeader otherUserId={otherUserId} />
-      </div>      
-    
-      <div style={styles.messagesArea}>
-        {messages.map((msg, index) => {
-          console.log('🔍 메시지 타입:', msg.type, '내용:', msg.content);
+      <div style={styles.container}>
+        <div style={styles.messagesArea}>
+          {messages.map((msg, index) => {
+            const isMine = msg.sender_id === currentUserId;
 
-          const isMine = msg.sender_id === currentUserId;
+            const formatTime = (timestamp) => {
+              if (!timestamp) return '';
+              const date = new Date(timestamp);
+              const options = { hour: 'numeric', minute: 'numeric', timeZone: 'Asia/Seoul' };
+              return date.toLocaleTimeString('ko-KR', options);
+            };
 
-          // 🕒 시간 포맷 함수 (서울 시간 기준)
-          const formatTime = (timestamp) => {
-            if (!timestamp) return '';
-            const date = new Date(timestamp);
-            const options = { hour: 'numeric', minute: 'numeric', timeZone: 'Asia/Seoul' };
-            return date.toLocaleTimeString('ko-KR', options);
-          };
+            const msgDate = msg.created_at ? new Date(msg.created_at) : null;
+            const prevMsgDate =
+              index > 0 && messages[index - 1].created_at
+                ? new Date(messages[index - 1].created_at)
+                : null;
 
-          // 📅 날짜 헤더 표시 여부 판단
-          const msgDate = msg.created_at ? new Date(msg.created_at) : null;
-          const prevMsgDate =
-            index > 0 && messages[index - 1].created_at
-              ? new Date(messages[index - 1].created_at)
-              : null;
+            const shouldShowDateHeader =
+              index === 0 ||
+              !prevMsgDate ||
+              (msgDate && msgDate.toDateString() !== prevMsgDate.toDateString());
 
-          const shouldShowDateHeader =
-            index === 0 ||
-            !prevMsgDate ||
-            (msgDate && msgDate.toDateString() !== prevMsgDate.toDateString());
+            return (
+              <React.Fragment key={msg.id || `msg-${index}`}>
+                {shouldShowDateHeader && (
+                  <div
+                    style={{
+                      display: 'flex',
+                      justifyContent: 'center',
+                      margin: '12px 0',
+                    }}
+                  >
+                    <div
+                      style={{
+                        backgroundColor: '#f0f0f0',
+                        padding: '6px 12px',
+                        borderRadius: '16px',
+                        fontSize: '12px',
+                        color: '#666',
+                      }}
+                    >
+                      📅 {msgDate.toLocaleDateString('ko-KR')}
+                    </div>
+                  </div>
+                )}
 
-          return (
-            <div
-              key={msg.id || `msg-${index}`}
-              style={{
-                display: 'flex',
-                flexDirection: isMine ? 'row-reverse' : 'row',
-                alignItems: 'flex-end',
-                marginBottom: '8px',
-                // maxWidth: '100%',
-                width: '100%', // maxWidth 대신 width 100%로 부모 너비 꽉 채우기
-                gap: '8px',
-              }}
-            >
-              {/* 텍스트, 파일 메시지는 말풍선 스타일 적용 */}
-              {(msg.type === 'text' || msg.type === 'file' || !msg.type) && (
                 <div
                   style={{
-                    backgroundColor: isMine ? '#d1f7c4' : '#eee',
-                    borderRadius: '8px',
-                    padding: '8px 12px',
-                    wordBreak: 'break-word',
-                    cursor: 'default',
-                    maxWidth: '100%',
+                    display: 'flex',
+                    flexDirection: isMine ? 'row-reverse' : 'row',
+                    alignItems: 'flex-end',
+                    marginBottom: '8px',
+                    width: '100%',
+                    gap: '8px',
                   }}
                 >
-                  {msg.type === 'file' && (
-                    <div>
-                      📎{' '}
-                      <span
-                        onClick={() => handleDownload(msg.content, msg.name)}
-                        style={{ color: '#0077cc', cursor: 'pointer', textDecoration: 'underline' }}
-                      >
-                        {msg.name || '파일 다운로드'}
-                      </span>
+                  {/* 텍스트/파일 메시지 */}
+                  {(msg.type === 'text' || msg.type === 'file' || !msg.type) && (
+                    <div
+                      style={{
+                        backgroundColor: isMine ? '#d1f7c4' : '#eee',
+                        borderRadius: '8px',
+                        padding: '8px 12px',
+                        wordBreak: 'break-word',
+                        cursor: 'default',
+                        maxWidth: '100%',
+                      }}
+                    >
+                      {msg.type === 'file' && (
+                        <div>
+                          📎{' '}
+                          <span
+                            onClick={() => handleDownload(msg.content, msg.name)}
+                            style={{
+                              color: '#0077cc',
+                              cursor: 'pointer',
+                              textDecoration: 'underline',
+                            }}
+                          >
+                            {msg.name || '파일 다운로드'}
+                          </span>
+                        </div>
+                      )}
+                      {(msg.type === 'text' || !msg.type) && <span>{msg.content}</span>}
                     </div>
                   )}
-                  {(msg.type === 'text' || !msg.type) && <span>{msg.content}</span>}
+
+                  {/* 이미지 */}
+                  {msg.type === 'image' && (
+                    <img
+                      src={msg.content}
+                      alt={msg.name || 'image'}
+                      style={{
+                        maxWidth: '150px',
+                        borderRadius: '8px',
+                        cursor: 'pointer',
+                        objectFit: 'cover',
+                        display: 'block',
+                      }}
+                      onClick={() => setSelectedMedia({ type: 'image', url: msg.content })}
+                    />
+                  )}
+
+                  {/* 비디오 */}
+                  {msg.type === 'video' && (
+                    <video
+                      src={msg.content}
+                      controls
+                      style={{
+                        maxWidth: '200px',
+                        borderRadius: '8px',
+                        cursor: 'pointer',
+                        display: 'block',
+                      }}
+                      onClick={() => setSelectedMedia({ type: 'video', url: msg.content })}
+                    />
+                  )}
+
+                  {/* 시간/읽음 */}
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      color: '#666',
+                      fontSize: 12,
+                      gap: '4px',
+                      minWidth: '40px',
+                      justifyContent: 'flex-end',
+                      flexDirection: 'row',
+                    }}
+                  >
+                    {isMine && msg.read_at && (
+                      <span style={{ fontSize: 10, color: '#999' }}>읽음</span>
+                    )}
+                    <span>{formatTime(msg.created_at)}</span>
+                  </div>
                 </div>
-              )}
+              </React.Fragment>
+            );
+          })}
 
-              {/* 사진 메시지 */}
-              {msg.type === 'image' && (
-                <img
-                  src={msg.content}
-                  alt={msg.name || 'image'}
-                  style={{
-                    maxWidth: '150px',
-                    borderRadius: '8px',
-                    cursor: 'pointer',
-                    objectFit: 'cover',
-                    display: 'block',
-                  }}
-                  onClick={() => setSelectedMedia({ type: 'image', url: msg.content })}
-                />
-              )}
-
-              {/* 동영상 메시지 */}
-              {msg.type === 'video' && (
-                <video
-                  src={msg.content}
-                  controls
-                  style={{
-                    maxWidth: '200px',
-                    borderRadius: '8px',
-                    cursor: 'pointer',
-                    display: 'block',
-                  }}
-                  onClick={() => setSelectedMedia({ type: 'video', url: msg.content })}
-                />
-              )}
-
-              {/* 시간 + 읽음 표시 */}
-              <div
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  color: '#666',
-                  fontSize: 12,
-                  gap: '4px',
-                  minWidth: '40px',
-                  justifyContent: 'flex-end',
-                  flexDirection: 'row',
-                }}
-              >
-                {isMine && msg.read_at && (
-                  <span style={{ fontSize: 10, color: '#999' }}>읽음</span>
-                )}
-                <span>{formatTime(msg.created_at)}</span>
-              </div>
-            </div>                   
-          );
-        })}
-        {/* 📍 스크롤 하단 고정용 ref */}
-        <div ref={endRef} />
-      </div>      
-
-      <div style={{ ...styles.inputContainer, display: 'flex', alignItems: 'center' }}>
-        {/* ✅ label 대신 div 사용 */}
-        <div
-          onClick={handlePlusClick}
-          style={{ ...styles.plusButton, marginLeft: '4px', marginRight: '4px' }}
-        >
-          +
+          <div ref={endRef} />
         </div>
 
-        <input
-          type="file"
-          ref={fileInputRef}
-          style={{ display: 'none' }}
-          onChange={handleFileChange}
-        />
-
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', width: '100%' }}>
-          <textarea
-            placeholder="메시지를 입력하세요"
-            value={newMessage}
-            onChange={(e) => setNewMessage(e.target.value)}
-            onKeyDown={handleKeyDown}
-            rows={2}
-            style={{
-              flexGrow: 1,
-              minWidth: 0,         // 이게 중요해! 없으면 너무 작아짐
-              paddingLeft: '10px',
-              paddingRight: '10px',
-              fontSize: '14px',
-              letterSpacing: '0.5px',
-              lineHeight: '1.6',
-              resize: 'none',
-              marginBottom: '8px',
-              borderRadius: '8px',
-              backgroundColor: '#f1f1f1',
-              border: '1px solid #ccc',
-            }}
-          />
-          <button
-            onClick={handleSendMessage}
-            style={{
-              background: 'none',
-              border: 'none',
-              cursor: 'pointer',
-              padding: '8px',
-              fontSize: '20px',
-              color: '#333',
-              marginBottom: '8px',
-              flexShrink: 0,       // 버튼 크기 줄어드는거 방지
-            }}
+        {/* 입력창 영역 */}
+        <div style={{ ...styles.inputContainer, display: 'flex', alignItems: 'center' }}>
+          <div
+            onClick={handlePlusClick}
+            style={{ ...styles.plusButton, marginLeft: '4px', marginRight: '4px' }}
           >
-            <FaPaperPlane />
-          </button>
-        </div>        
-      </div>
+            +
+          </div>
 
-      {isFileModalOpen && (
-        <div style={styles.modalOverlay}>
-          <div style={styles.modalContent}>
-            <p>📄 선택한 파일: <strong>{selectedFile?.name}</strong></p>
-            <div style={{ marginTop: 12, display: 'flex', justifyContent: 'space-between' }}>
-              <button onClick={handleSendFile} style={styles.modalButton}>파일 전송</button>
-              <button onClick={handleCloseModal} style={styles.cancelButton}>취소</button>
-            </div>
+          <input
+            type="file"
+            ref={fileInputRef}
+            style={{ display: 'none' }}
+            onChange={handleFileChange}
+          />
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', width: '100%' }}>
+            <textarea
+              placeholder="메시지를 입력하세요"
+              value={newMessage}
+              onChange={(e) => setNewMessage(e.target.value)}
+              onKeyDown={handleKeyDown}
+              rows={2}
+              style={{
+                flexGrow: 1,
+                minWidth: 0,
+                paddingLeft: '10px',
+                paddingRight: '10px',
+                fontSize: '14px',
+                letterSpacing: '0.5px',
+                lineHeight: '1.6',
+                resize: 'none',
+                marginBottom: '8px',
+                borderRadius: '8px',
+                backgroundColor: '#f1f1f1',
+                border: '1px solid #ccc',
+              }}
+            />
+            <button
+              onClick={handleSendMessage}
+              style={{
+                background: 'none',
+                border: 'none',
+                cursor: 'pointer',
+                padding: '8px',
+                fontSize: '20px',
+                color: '#333',
+                marginLeft: '2px',   // 왼쪽 여백 줄임
+                marginRight: '12px', // 오른쪽 여백 좀 더 줌
+                flexShrink: 0,
+              }}
+            >
+              <FaPaperPlane />
+            </button>
           </div>
         </div>
-      )}
-    </div>        
-        
 
-  );
+        {/* 파일 모달 */}
+        {isFileModalOpen && (
+          <div style={styles.modalOverlay}>
+            <div style={styles.modalContent}>
+              <p>
+                📄 선택한 파일: <strong>{selectedFile?.name}</strong>
+              </p>
+              <div style={{ marginTop: 12, display: 'flex', justifyContent: 'space-between' }}>
+                <button onClick={handleSendFile} style={styles.modalButton}>
+                  파일 전송
+                </button>
+                <button onClick={handleCloseModal} style={styles.cancelButton}>
+                  취소
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+  );  
+
 }
 
 const modalStyles = {
