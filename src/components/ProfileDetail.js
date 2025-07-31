@@ -287,16 +287,43 @@ function ProfileDetail({ onUnlock }) {
           p_target_id: id,
         });
 
+        console.log('User ID:', user?.id);
+        console.log('Target Profile ID:', id);
+
         if (error) throw error;
 
         alert('관심 등록이 완료되었습니다!');
         navigate('/favorites');
       } catch (error) {
-        alert(`코인이 부족하거나 오류가 발생했습니다.\n${error.message}`);
-        navigate('/coin-charge');
+        const errorMsg = error.message || '';
+
+        if (errorMsg.includes('이미 좋아요를 보냈습니다.')) {
+          alert('이미 관심 표시한 프로필입니다.');
+        } else if (errorMsg.includes('코인이 충분하지 않습니다.') || errorMsg.includes('코인이 부족합니다')) {
+          alert('코인이 부족합니다. 코인을 충전해주세요.');
+          navigate('/coin-charge');
+        } else {
+          alert(`알 수 없는 오류가 발생했습니다.\n${errorMsg}`);
+        }
       } finally {
         setLoading(false);
-      }
+      }      
+      // try {
+      //   const { data, error } = await supabase.rpc('deduct_coin_for_like', {
+      //     p_user_id: user.id,
+      //     p_target_id: id,
+      //   });
+
+      //   if (error) throw error;
+
+      //   alert('관심 등록이 완료되었습니다!');
+      //   navigate('/favorites');
+      // } catch (error) {
+      //   alert(`코인이 부족하거나 오류가 발생했습니다.\n${error.message}`);
+      //   navigate('/coin-charge');
+      // } finally {
+      //   setLoading(false);
+      // }
     };     
 
 

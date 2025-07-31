@@ -18,7 +18,7 @@ function LikesButton({ targetUserId, currentUserId }) {
         .eq('liker_id', currentUserId)
         .eq('liked_id', targetUserId)
         .single();
-
+console.log('좋아요 결과: AAAAA');
       if (!error && data) {
         setLiked(true);
       } else {
@@ -49,6 +49,8 @@ function LikesButton({ targetUserId, currentUserId }) {
         .delete()
         .eq('liker_id', currentUserId)
         .eq('liked_id', targetUserId);
+
+     
       if (!error) setLiked(false);
       else console.error('좋아요 삭제 오류:', error);
     } else {
@@ -61,6 +63,7 @@ function LikesButton({ targetUserId, currentUserId }) {
           .eq('liked_id', targetUserId)
           .single();
 
+console.log('좋아요 결과: BBBBBB');                     
         if (!fetchError && existing) {
           // 이미 좋아요가 존재함
           setLiked(true);

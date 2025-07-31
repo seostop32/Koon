@@ -134,6 +134,7 @@ function AppRoutes() {
   };
 
   const handleLogout = async () => {
+    localStorage.clear(); // 세션 관련 정보 초기화
     const { error } = await supabase.auth.signOut();
     if (error) {
       alert('로그아웃 실패: ' + error.message);

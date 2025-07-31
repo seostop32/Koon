@@ -88,10 +88,9 @@ const handleLike = async () => {
         .select('*')
         .eq('liker_id', user.id)
         .eq('liked_id', profileId)
-        .single();
+        .maybeSingle();
 
-      if (checkError && checkError.code !== 'PGRST116') { 
-        // 'PGRST116'은 없을 때 에러로, 이 경우 무시해도 됨
+      if (checkError) {
         alert('관심 상태 확인 중 오류가 발생했습니다.');
         setLoading(false);
         return;
