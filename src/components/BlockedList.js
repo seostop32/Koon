@@ -85,9 +85,12 @@ function BlockedList() {
       alignItems: 'center',
     },
     footerButton: {
-      fontSize: 24,
+      flex: 1,
+      textAlign: 'center',
+      fontSize: '1.2rem',
       cursor: 'pointer',
-    },
+      userSelect: 'none',
+    },  
     unblockButton: {
       backgroundColor: '#4caf50',
       color: '#fff',
