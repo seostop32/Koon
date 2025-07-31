@@ -288,11 +288,11 @@ console.log('[ProfileIntro] photos:========', photos);
       </div>
 
       <footer style={styles.footer}>
-        <div style={styles.footerIcon} onClick={() => navigate('/')}>🏠</div>
-        <div style={styles.footerIcon} onClick={() => navigate('/search')}>🔍</div>
-        <div style={styles.footerIcon} onClick={() => navigate('/favorites')}>💘</div>
-        <div style={styles.footerIcon} onClick={() => navigate('/chat')}>💬</div>
-        <div style={styles.footerIcon} onClick={() => navigate('/mypage')}>👤</div>
+        <div style={styles.footerButton} onClick={() => navigate('/')}>🏠</div>
+        <div style={styles.footerButton} onClick={() => navigate('/search')}>🔍</div>
+        <div style={styles.footerButton} onClick={() => navigate('/favorites')}>💘</div>
+        <div style={styles.footerButton} onClick={() => navigate('/chat')}>💬</div>
+        <div style={styles.footerButton} onClick={() => navigate('/mypage')}>👤</div>
       </footer>
     </div>
   );
@@ -420,6 +420,10 @@ const styles = {
     cursor: 'pointer',
     color: '#000', // 흰 배경에 어울리도록 검은색
   },
+  footerButton: {
+    fontSize: 20,
+    cursor: 'pointer',
+  },  
 };
 
 export default ProfileIntro;

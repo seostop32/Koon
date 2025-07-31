@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { supabase } from '../supabaseClient';  // 경로 맞게 조정
 import CoinChargeHeader from './CoinChargeHeader';
-
+import { FaBitcoin } from 'react-icons/fa';
 
 const coinOptions = [
   { id: 1, coins: 1300, price: 100000 },
@@ -370,7 +370,7 @@ async function requestKakaoPay(method: string, amount: number, coins: number, us
                         {profile?.coin_balance?.toLocaleString() ?? 0}
                       </span> 코인 입니다.
         </div>
-        <div style={styles.sectionTitle}>결제금액 선택  <small>(우측금액은 VAT 10% 포함 금액입니다.)</small></div>
+        <div style={styles.sectionTitle}>결제금액 선택  <small>(부가세 포함)</small></div>
           
 
 
@@ -386,40 +386,41 @@ async function requestKakaoPay(method: string, amount: number, coins: number, us
               onChange={() => setSelectedOption(id)}
               style={styles.radio}
             />
-            <span style={styles.coinIcon}>🪙</span>
+            {/* <span style={styles.coinIcon}>🪙</span> */}
+            <FaBitcoin style={{ marginRight: 6, color: '#f2a900' }} />
             <span style={styles.coinAmount}>{coins.toLocaleString()}</span>
-            <span style={styles.priceInfo}>
-              {price.toLocaleString()}원 + 10% = <span style={{ color: '#222', fontWeight: 'bold' }}>₩{priceWithBonus.toLocaleString()}원</span>
+            <span style={styles.priceInfo}> <span style={{ color: '#222', fontWeight: 'bold' }}>₩{priceWithBonus.toLocaleString()}원</span>
+            {/* <span style={styles.priceInfo}> {price.toLocaleString()}원 + 10% = <span style={{ color: '#222', fontWeight: 'bold' }}>₩{priceWithBonus.toLocaleString()}원</span> */}
             </span>
           </label>
           );
         })}
 
         <div style={styles.sectionTitle}>결제방식 선택</div>
-          <button
+          {/* <button
             style={{ ...styles.payButton, ...styles.bankButton }}
             onClick={() => handleCharge('계좌이체')}
           >
             계좌이체
-          </button>
+          </button> */}
           <button
             style={{ ...styles.payButton, ...styles.kakaoButton }}
             onClick={() => handleCharge('카카오페이')}
           >
             카카오페이
           </button>
-          <button
+          {/* <button
             style={{ ...styles.payButton, ...styles.naverButton }}
             onClick={() => handleCharge('네이버페이')}
           >
             네이버페이
-          </button>
-          <button
+          </button> */}
+          {/* <button
             style={{ ...styles.payButton, backgroundColor: '#1e40af', color: '#fff' }}
             onClick={() => handleCharge('카드결제')}
           >
             카드결제
-          </button>
+          </button> */}
 
           {/* 테스트용 코인 충전 버튼 추가 */}
           <button

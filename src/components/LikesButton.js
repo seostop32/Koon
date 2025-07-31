@@ -35,12 +35,31 @@ console.log('좋아요 결과: AAAAA');
   const toggleLike = async () => {
     if (!currentUserId || !targetUserId) return;
 
-    if (!liked) {
-      const confirm = window.confirm('관심 등록 시 코인이 차감됩니다. 계속하시겠습니까?');
-      if (!confirm) return;
+    setLoading(true);
+
+    // ✅ 로그인한 사용자 성별 확인
+    const { data: profileData, error: profileError } = await supabase
+      .from('profiles')
+      .select('gender')
+      .eq('id', currentUserId)
+      .single();
+
+    if (profileError || !profileData) {
+      alert('사용자 정보를 불러오지 못했습니다.');
+      setLoading(false);
+      return;
     }
 
-    setLoading(true);
+    const isMale = profileData.gender === '남성';
+
+    // ✅ 남성만 confirm 창 띄움
+    if (!liked && isMale) {
+      const confirm = window.confirm('관심 등록 시 코인이 차감됩니다. 계속하시겠습니까?');
+      if (!confirm) {
+        setLoading(false);
+        return;
+      }
+    }
 
     if (liked) {
       // 좋아요 삭제
@@ -50,12 +69,11 @@ console.log('좋아요 결과: AAAAA');
         .eq('liker_id', currentUserId)
         .eq('liked_id', targetUserId);
 
-     
       if (!error) setLiked(false);
       else console.error('좋아요 삭제 오류:', error);
     } else {
       try {
-        // 좋아요 존재 여부 재확인
+        // 좋아요 중복 확인
         const { data: existing, error: fetchError } = await supabase
           .from('likes')
           .select('*')
@@ -63,15 +81,13 @@ console.log('좋아요 결과: AAAAA');
           .eq('liked_id', targetUserId)
           .single();
 
-console.log('좋아요 결과: BBBBBB');                     
         if (!fetchError && existing) {
-          // 이미 좋아요가 존재함
           setLiked(true);
           setLoading(false);
           return;
         }
 
-        // 코인 차감 RPC 호출
+        // RPC로 코인 차감 및 서버 처리
         const { error: rpcError } = await supabase.rpc('deduct_coin_for_like', {
           p_user_id: currentUserId,
           p_target_id: targetUserId,
@@ -83,17 +99,11 @@ console.log('좋아요 결과: BBBBBB');
           .from('likes')
           .insert([{ liker_id: currentUserId, liked_id: targetUserId }]);
 
-        if (insertError) {
-          // 중복키 오류면 무시하고 liked true로 맞춤
-          if (insertError.code === '23505') {
-            setLiked(true);
-          } else {
-            throw insertError;
-          }
-        } else {
-          setLiked(true);
-        }
+        if (insertError && insertError.code !== '23505') throw insertError;
 
+        setLiked(true);
+
+        // 알림 생성
         const { data: profile } = await supabase
           .from('profiles')
           .select('nickname')
@@ -102,28 +112,30 @@ console.log('좋아요 결과: BBBBBB');
 
         const likerNickname = profile?.nickname || '누군가';
 
-        // 알림 생성
         const { error: notifyError } = await supabase
           .from('notifications')
           .insert([{
             user_id: targetUserId,
             sender_id: currentUserId,
             type: 'like',
-            // content: '누군가가 당신을 좋아합니다.',
-            content: `${likerNickname}님이 당신을 좋아합니다.`, // ✅ 보낸 사람 닉네임 포함
+            content: `${likerNickname}님이 당신을 좋아합니다.`,
             related_id: null,
           }]);
-          console.log('알림 생성 결과:', notifyError);
+
         if (notifyError) throw notifyError;
 
-        alert('좋아요 완료! 코인이 차감되고 알림이 전송되었습니다.');
+        if (isMale) {
+          alert('좋아요 완료! 코인이 차감되고 알림이 전송되었습니다.');
+        } else {
+          alert('좋아요 완료! 알림이 전송되었습니다.');
+        }
       } catch (error) {
         alert(`오류 발생: ${error.message}`);
       }
     }
 
     setLoading(false);
-  };
+  };  
 
   return (
     <button
