@@ -75,24 +75,27 @@ function AccountManagement({ onLogout }) {
 
       const { data, error } = await supabase
         .from('profiles')
-        .select('*')
+        .select('username, gender, age, phone') // 필요한 필드만 요청
         .eq('id', user.id)
         .is('is_deleted', false);
-        // .single();
-
-      console.log('받아온 프로필 데이터:', data);
 
       if (error) {
         console.error('프로필 로드 실패:', error);
+        setLoading(false);  // 에러 처리 후 로딩 상태 해제
         return;
       }
 
-      setProfile(data);
-      setLoading(false);
+      if (data && data.length > 0) {
+        setProfile(data[0]); // 프로필이 있을 경우
+      } else {
+        setProfile(null);  // 없으면 null 처리
+      }
+
+      setLoading(false);  // 데이터 처리 후 로딩 상태 해제
     };
 
     fetchProfile();
-  }, [navigate]);
+  }, [navigate]);  
 
   return (
     <div style={styles.container}>
