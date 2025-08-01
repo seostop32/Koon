@@ -63,12 +63,40 @@ function ProfileDetail({ onUnlock }) {
   }, [sessionUserId]);
 
   useEffect(() => {
-    const getUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      setUser(user);
+    const fetchUserWithGender = async () => {
+      const {
+        data: { user: authUser },
+        error: authError,
+      } = await supabase.auth.getUser();
+
+      if (authError || !authUser) {
+        console.error('인증된 사용자 정보 가져오기 실패:', authError);
+        setUser(null);
+        return;
+      }
+
+      // authUser.id를 사용해 profiles 테이블에서 gender 포함된 프로필 가져오기
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles') // ✅ 여기가 중요!
+        .select('*')
+        .eq('id', authUser.id)
+        .single();
+
+      if (profileError || !profile) {
+        console.error('프로필 정보 가져오기 실패:', profileError);
+        setUser(null);
+        return;
+      }
+
+      setUser(profile); // ✅ gender를 포함한 프로필 저장
     };
-    getUser();
+
+    fetchUserWithGender();
   }, []);
+
+  useEffect(() => {
+    console.log('🧾 user 정보:', user);
+  }, [user]);  
 
   // 👇 이 부분이 반드시 필요합니다!
   const { photos = [] } = location.state || {};
@@ -328,15 +356,25 @@ function ProfileDetail({ onUnlock }) {
 
 
   const handleContactClick = () => {
-    // const confirm = window.confirm('연락을 위해서 3코인이 필요합니다. 계속하시겠습니까?');
-    // 코인 충분 → 채팅 페이지로 이동
-    if (myCoin > 0) {
-      navigate(`/chat/${id}`);
-    // 코인 부족 → 코인 충전 페이지로 이동  
-    } else {
-      navigate('/coin-charge');
+    if (!user || !user.gender) {
+      alert('잠시만요! 유저 정보를 불러오는 중이에요.');
+      return;
     }
-  }; 
+
+    const gender = user.gender.toLowerCase();  // gender가 'female' or '여성'으로 저장돼있어야 함
+    const isFemale = gender === 'female' || gender === '여성';
+
+    if (isFemale) {
+      // 여성 → 바로 채팅방
+      navigate(`/chat/${id}`);
+    } else if (myCoin > 0) {
+      // 남성 + 코인 있음 → 채팅방
+      navigate(`/chat/${id}`);
+    } else {
+      // 남성 + 코인 없음 → 충전 페이지로 이동
+      navigate('/coin-charge', { state: { next: `/chat/${id}` } });
+    }
+  };
 
   // 블러사진 클릭시
   async function handleClickPhoto(index) {
